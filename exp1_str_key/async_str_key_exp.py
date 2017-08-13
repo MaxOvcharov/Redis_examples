@@ -18,11 +18,10 @@ async def rd_set_cmd(rd):
 
 def main():
     # load config from yaml file
-    conf = load_config(os.path.join(BASE_DIR, "config/dev.yml"))
-
+    conf = load_config(os.path.join(BASE_DIR, "config_files/dev.yml"))
     loop = asyncio.get_event_loop()
-    rd = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf))
-    tasks = asyncio.gather(rd_set_cmd(rd))
+    rd_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis']))
+    tasks = asyncio.gather(rd_set_cmd(rd_conn.rd))
     loop.run_until_complete(tasks)
     try:
         loop.run_forever()

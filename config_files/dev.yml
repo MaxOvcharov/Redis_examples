@@ -1,4 +1,4 @@
-postgres:
+redis:
   db: rd_test
   password: 121212
   host: localhost
