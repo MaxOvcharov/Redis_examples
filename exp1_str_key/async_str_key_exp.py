@@ -6,13 +6,14 @@ import asyncio
 import os
 
 from redis_client import rd_client_factory
+from settings import BASE_DIR, logger
 from utils import load_config
 
 
 async def rd_set_cmd(rd):
     await rd.set('my-key', 'value')
     val = await rd.get('my-key')
-    print(val)
+    logger.debug(val)
 
 
 def main():
@@ -26,7 +27,7 @@ def main():
     try:
         loop.run_forever()
     except KeyboardInterrupt as e:
-        print("Caught keyboard interrupt. Canceling tasks...")
+        logger.error("Caught keyboard interrupt - {0}.\n Canceling tasks...".format(e))
         tasks.cancel()
         loop.run_forever()
         tasks.exception()
