@@ -3,7 +3,11 @@
     Simple example of commands with STRING KEY using async lib - aioredis
 """
 import asyncio
+import os
+
 from redis_client import rd_client_factory
+from utils import load_config
+
 
 async def rd_set_cmd(rd):
     await rd.set('my-key', 'value')
@@ -12,6 +16,9 @@ async def rd_set_cmd(rd):
 
 
 def main():
+    # load config from yaml file
+    conf = load_config(os.path.join(BASE_DIR, "config/dev.yml"))
+
     loop = asyncio.get_event_loop()
     rd = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf))
     tasks = asyncio.gather(rd_set_cmd(rd))
