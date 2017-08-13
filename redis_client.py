@@ -22,7 +22,7 @@ class RedisClient:
             password=self.conf['password'],
             maxsize=self.conf['maxsize'],
             minsize=self.conf['minsize'],
-            loop=self.conf['loop']
+            loop=self.loop
         )
 
     async def close_connection(self):
