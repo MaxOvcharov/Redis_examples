@@ -1,5 +1,5 @@
 redis:
-  db: rd_test
+  db: 1
   password: 121212
   host: localhost
   port: 6379
