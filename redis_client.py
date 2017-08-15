@@ -33,4 +33,4 @@ class RedisClient:
 async def rd_client_factory(loop, conf, client=RedisClient):
     """ Abstract Redis client factory """
     rd = await client.connect(loop=loop, conf=conf)
-    return rd.rd
+    return rd
