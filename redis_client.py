@@ -1,4 +1,5 @@
 import aioredis
+from settings import logger
 
 
 class RedisClient:
@@ -28,7 +29,7 @@ class RedisClient:
     async def close_connection(self):
         self.rd.close()
         await self.rd.wait_closed()
-
+        logger.debug('Redis closing pool connection...')
 
 async def rd_client_factory(loop, conf, client=RedisClient):
     """ Abstract Redis client factory """
