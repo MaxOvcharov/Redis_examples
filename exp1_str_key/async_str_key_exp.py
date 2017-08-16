@@ -11,28 +11,22 @@ from utils import load_config
 
 
 async def rd_set_cmd(rd):
-    # await rd.set('my-key', 'value')
-    # with await rd as conn:  # low-level redis connection
-    #     await conn.connection.execute('set', 'my-key', 'value')
     with await rd as conn:
-        assert await conn.connection.execute('set', 'my-key', 'hello')
-        val = await conn.get('my-key')
-    logger.debug(val)
+        await conn.set('str_set_cmd', 'test_str_set_cmd')
+        val = await conn.get('str_set_cmd')
+    logger.debug("STR_CMD - 'SET': {0}".format(val))
 
 
 def main():
     # load config from yaml file
     conf = load_config(os.path.join(BASE_DIR, "config_files/dev.yml"))
+    # create event loop
     loop = asyncio.get_event_loop()
     rd_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis']))
-    tasks = asyncio.gather(rd_set_cmd(rd_conn.rd))
-    loop.run_until_complete(tasks)
     try:
-        loop.run_forever()
+        loop.run_until_complete(rd_set_cmd(rd_conn.rd))
     except KeyboardInterrupt as e:
-        logger.error("Caught keyboard interrupt - {0}.\n Canceling tasks...".format(e))
-        tasks.cancel()
-        tasks.exception()
+        logger.error(f"Caught keyboard interrupt {0}\nCanceling tasks...".format(e))
     finally:
         loop.run_until_complete(rd_conn.close_connection())
         loop.close()
