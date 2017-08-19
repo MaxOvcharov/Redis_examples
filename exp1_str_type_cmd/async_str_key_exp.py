@@ -17,6 +17,7 @@ class RedisStrCommands:
     async def run_rd_str_commands(self):
         await self.rd_set_cmd()
         await self.rd_append_cmd()
+        await self.rd_bitcount_cmd()
 
     async def rd_set_cmd(self):
         """
@@ -53,6 +54,26 @@ class RedisStrCommands:
             conn.delete(key)
         frm = "STR_CMD - 'APPEND(NEW) -> APPEND -> GET': KEY - {0}, VALUE - {1}\n"
         logger.debug(frm.format(key, res))
+
+    async def rd_bitcount_cmd(self):
+        """
+        Count the number of set bits (population counting) in a string.
+        By default all the bytes contained in the string are examined.
+        It is possible to specify the counting operation only in an
+        interval passing the additional arguments start and end.
+
+        :return: None
+        """
+        key = 'str_bitcount_cmd'
+        value = 'foobar'
+        with await self.rd as conn:
+            await conn.set(key, value)
+            res1 = await conn.bitcount(key)
+            res2 = await conn.bitcount(key, 0, 0)
+            res3 = await conn.bitcount(key, 0, 15)
+            conn.delete(key)
+        frm = "STR_CMD - 'BITCOUNT': KEY - {0}, VALUE - {1}\n"
+        logger.debug(frm.format(key, [res1, res2, res3]))
 
 
 def main():
