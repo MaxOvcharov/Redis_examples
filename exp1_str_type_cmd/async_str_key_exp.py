@@ -20,6 +20,7 @@ class RedisStrCommands:
         await self.rd_bitcount_cmd()
         await self.rd_bitop_and_cmd()
         await self.rd_bitop_or_cmd()
+        await self.rd_bitop_xor_cmd()
 
     async def rd_set_cmd(self):
         """
@@ -136,7 +137,38 @@ class RedisStrCommands:
             res1 = await conn.bitop_or(destkey, key1, key2)
             res2 = await conn.get(destkey)
             conn.delete(destkey, key1, key2)
-        frm = "STR_CMD - 'BITOP_AND': KEY - {0}, VALUE - {1}\n"
+        frm = "STR_CMD - 'BITOP_OR': KEY - {0}, VALUE - {1}\n"
+        logger.debug(frm.format(destkey, [res1, res2]))
+
+    async def rd_bitop_xor_cmd(self):
+        """
+        Perform a bitwise operation between multiple keys
+        (containing string values) and store the result in the destination key.
+
+        BITOP XOR destkey srckey1 srckey2 srckey3 ... srckeyN
+
+        The result of the operation is always stored at destkey.
+        EXAMPLE:
+        a_byte = bytearray('foobar', 'utf-8')
+        b_byte = bytearray('abcdef', 'utf-8')
+        res = bytearray(a_byte[i] ^ b_byte[i] for i in range(len(b_byte)))
+
+        bytearray(b'\x07\r\x0c\x06\x04\x14') - RESULT
+
+        :return: None
+        """
+        destkey = 'str_bitop_xor_cmd'
+        key1 = 'key_1'
+        key2 = 'key_2'
+        value1 = 'foobar'
+        value2 = 'abcdef'
+        with await self.rd as conn:
+            await conn.set(key1, value1)
+            await conn.set(key2, value2)
+            res1 = await conn.bitop_xor(destkey, key1, key2)
+            res2 = await conn.get(destkey)
+            conn.delete(destkey, key1, key2)
+        frm = "STR_CMD - 'BITOP_XOR': KEY - {0}, VALUE - {1}\n"
         logger.debug(frm.format(destkey, [res1, res2]))
 
 
