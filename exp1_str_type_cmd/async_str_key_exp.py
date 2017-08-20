@@ -19,6 +19,7 @@ class RedisStrCommands:
         await self.rd_append_cmd()
         await self.rd_bitcount_cmd()
         await self.rd_bitop_and_cmd()
+        await self.rd_bitop_or_cmd()
 
     async def rd_set_cmd(self):
         """
@@ -87,9 +88,10 @@ class RedisStrCommands:
         EXAMPLE:
         a_byte = bytearray('foobar', 'utf-8')
         b_byte = bytearray('abcdef', 'utf-8')
-        res2 = bytearray(a_byte[i] & b_byte[i] for i in range(len(b_byte)))
+        res = bytearray(a_byte[i] & b_byte[i] for i in range(len(b_byte)))
 
         bytearray(b'`bc`ab') - RESULT
+
         :return: None
         """
         destkey = 'str_bitop_and_cmd'
@@ -101,6 +103,37 @@ class RedisStrCommands:
             await conn.set(key1, value1)
             await conn.set(key2, value2)
             res1 = await conn.bitop_and(destkey, key1, key2)
+            res2 = await conn.get(destkey)
+            conn.delete(destkey, key1, key2)
+        frm = "STR_CMD - 'BITOP_AND': KEY - {0}, VALUE - {1}\n"
+        logger.debug(frm.format(destkey, [res1, res2]))
+
+    async def rd_bitop_or_cmd(self):
+        """
+        Perform a bitwise operation between multiple keys
+        (containing string values) and store the result in the destination key.
+
+        BITOP OR destkey srckey1 srckey2 srckey3 ... srckeyN
+
+        The result of the operation is always stored at destkey.
+        EXAMPLE:
+        a_byte = bytearray('foobar', 'utf-8')
+        b_byte = bytearray('abcdef', 'utf-8')
+        res = bytearray(a_byte[i] | b_byte[i] for i in range(len(b_byte)))
+
+        bytearray(b'goofev') - RESULT
+
+        :return: None
+        """
+        destkey = 'str_bitop_or_cmd'
+        key1 = 'key_1'
+        key2 = 'key_2'
+        value1 = 'foobar'
+        value2 = 'abcdef'
+        with await self.rd as conn:
+            await conn.set(key1, value1)
+            await conn.set(key2, value2)
+            res1 = await conn.bitop_or(destkey, key1, key2)
             res2 = await conn.get(destkey)
             conn.delete(destkey, key1, key2)
         frm = "STR_CMD - 'BITOP_AND': KEY - {0}, VALUE - {1}\n"
