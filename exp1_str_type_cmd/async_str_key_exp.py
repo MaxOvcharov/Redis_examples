@@ -27,6 +27,7 @@ class RedisStrCommands:
         await self.rd_incr_cmd()
         await self.rd_decrby_cmd()
         await self.rd_incrby_cmd()
+        await self.rd_setbit_cmd()
 
     async def rd_set_cmd(self):
         """
@@ -302,6 +303,31 @@ class RedisStrCommands:
             conn.delete(key)
         frm = "STR_CMD - 'INCRBY': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, value, res))
+
+    async def rd_setbit_cmd(self):
+        """
+        Sets or clears the bit at offset in the string value stored at key.
+          The bit is either set or cleared depending on value, which can
+          be either 0 or 1. When key does not exist, a new string value is
+          created. The string is grown to make sure it can hold a bit at
+          offset. The offset argument is required to be greater than or
+          equal to 0, and smaller than 2^32 (this limits bitmaps to 512MB).
+          When the string at key is grown, added bits are set to 0.
+
+        :return: None
+        """
+        key = 'key'
+        offset = 7
+        bit_val1 = 1
+        bit_val2 = 0
+        with await self.rd as conn:
+            res1 = await conn.setbit(key, offset, bit_val1)
+            res1_val = await conn.get(key)
+            res2 = await conn.setbit(key, offset, bit_val2)
+            res2_val = await conn.get(key)
+            conn.delete(key)
+        frm = "STR_CMD - 'SETBIT': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
+        logger.debug(frm.format(key, [res1, res1_val], [res2, res2_val]))
 
 
 def main():
