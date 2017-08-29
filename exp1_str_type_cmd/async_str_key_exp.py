@@ -22,6 +22,7 @@ class RedisStrCommands:
         await self.rd_bitop_or_cmd()
         await self.rd_bitop_xor_cmd()
         await self.rd_bitop_not_cmd()
+        await self.rd_bitpos_cmd()
 
     async def rd_set_cmd(self):
         """
@@ -199,6 +200,28 @@ class RedisStrCommands:
             conn.delete(destkey, key1)
         frm = "STR_CMD - 'BITOP_NOT': KEY - {0}, VALUE - {1}\n"
         logger.debug(frm.format(destkey, [res1, res2]))
+
+    async def rd_bitpos_cmd(self):
+        """
+        Return the position of the first bit set to 1 or 0 in a string.
+
+        BITPOS key [start] [end]
+
+        The command returns the position of the first bit set to 1 or 0
+          according to the request. If we look for set bits (the bit
+          argument is 1) and the string is empty or composed of just zero
+          bytes, -1 is returned.
+
+        :return: None
+        """
+        key = 'key'
+        value = "\x00\xff\xf0"
+        with await self.rd as conn:
+            await conn.set(key, value)
+            res = await conn.bitpos(key, 1, 0)
+            conn.delete(key)
+        frm = "STR_CMD - 'BITPOS': KEY - {0}, VALUE - {1}\n"
+        logger.debug(frm.format(key, res))
 
 
 def main():
