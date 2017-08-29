@@ -26,6 +26,7 @@ class RedisStrCommands:
         await self.rd_decr_cmd()
         await self.rd_incr_cmd()
         await self.rd_decrby_cmd()
+        await self.rd_incrby_cmd()
 
     async def rd_set_cmd(self):
         """
@@ -281,6 +282,25 @@ class RedisStrCommands:
             res = await conn.incr(key)
             conn.delete(key)
         frm = "STR_CMD - 'INCR': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
+        logger.debug(frm.format(key, value, res))
+
+    async def rd_incrby_cmd(self):
+        """
+        Increments the number stored at key by increment. If the key does
+          not exist, it is set to 0 before performing the operation. An
+          error is returned if the key contains a value of the wrong type
+          or contains a string that can not be represented as integer.
+          This operation is limited to 64 bit signed integers.
+
+        :return: None
+        """
+        key = 'key'
+        value = "0"
+        with await self.rd as conn:
+            await conn.set(key, value)
+            res = await conn.incrby(key, 4)
+            conn.delete(key)
+        frm = "STR_CMD - 'INCRBY': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, value, res))
 
 
