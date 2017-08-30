@@ -29,6 +29,7 @@ class RedisStrCommands:
         await self.rd_incrby_cmd()
         await self.rd_setbit_cmd()
         await self.rd_getbit_cmd()
+        await self.rd_getrange_cmd()
 
     async def rd_set_cmd(self):
         """
@@ -351,6 +352,31 @@ class RedisStrCommands:
             res2 = await conn.getbit(key, offset1)
             conn.delete(key)
         frm = "STR_CMD - 'GETBIT': KEY - {0}, NOT_SETBIT - {1}, SETBIT - {2}\n"
+        logger.debug(frm.format(key, res1, res2))
+
+    async def rd_getrange_cmd(self):
+        """
+        Returns the substring of the string value stored at key, determined
+          by the offsets start and end (both are inclusive). Negative
+          offsets can be used in order to provide an offset starting from
+          the end of the string. So -1 means the last character, -2 the
+          penultimate and so forth. The function handles out of range requests
+          by limiting the resulting range to the actual length of the string.
+
+        :return: None
+        """
+        key = 'key'
+        start1 = 0
+        end1 = 3
+        start2 = -6
+        end2 = -1
+        val1 = "This is a string"
+        with await self.rd as conn:
+            await conn.set(key, val1)
+            res1 = await conn.getrange(key, start1, end1)
+            res2 = await conn.getrange(key, start2, end2)
+            conn.delete(key)
+        frm = "STR_CMD - 'GETRANGE': KEY - {0}, DIRECT - {1}, REVERS - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
 
