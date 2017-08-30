@@ -28,6 +28,7 @@ class RedisStrCommands:
         await self.rd_decrby_cmd()
         await self.rd_incrby_cmd()
         await self.rd_setbit_cmd()
+        await self.rd_getbit_cmd()
 
     async def rd_set_cmd(self):
         """
@@ -329,6 +330,29 @@ class RedisStrCommands:
         frm = "STR_CMD - 'SETBIT': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, [res1, res1_val], [res2, res2_val]))
 
+    async def rd_getbit_cmd(self):
+        """
+        Returns the bit value at offset in the string value stored at key.
+          When offset is beyond the string length, the string is assumed
+          to be a contiguous space with 0 bits. When key does not exist it
+          is assumed to be an empty string, so offset is always out of
+          range and the value is also assumed to be a contiguous space
+          with 0 bits.
+
+        :return: None
+        """
+        key = 'key'
+        offset1 = 7
+        offset2 = 0
+        bit_val1 = 1
+        with await self.rd as conn:
+            await conn.setbit(key, offset1, bit_val1)
+            res1 = await conn.getbit(key, offset2)
+            res2 = await conn.getbit(key, offset1)
+            conn.delete(key)
+        frm = "STR_CMD - 'GETBIT': KEY - {0}, NOT_SETBIT - {1}, SETBIT - {2}\n"
+        logger.debug(frm.format(key, res1, res2))
+
 
 def main():
     # load config from yaml file
@@ -340,7 +364,7 @@ def main():
     try:
         loop.run_until_complete(rsc.run_rd_str_commands())
     except KeyboardInterrupt as e:
-        logger.error(f"Caught keyboard interrupt {0}\nCanceling tasks...".format(e))
+        logger.error("Caught keyboard interrupt {0}\nCanceling tasks...".format(e))
     finally:
         loop.run_until_complete(rd_conn.close_connection())
         loop.close()
