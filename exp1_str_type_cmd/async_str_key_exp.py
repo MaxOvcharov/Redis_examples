@@ -31,6 +31,7 @@ class RedisStrCommands:
         await self.rd_getbit_cmd()
         await self.rd_getrange_cmd()
         await self.rd_getset_cmd()
+        await self.rd_incrbyfloat_cmd()
 
     async def rd_set_cmd(self):
         """
@@ -403,6 +404,30 @@ class RedisStrCommands:
             res2 = await conn.get(key)
             conn.delete(key)
         frm = "STR_CMD - 'GETSET': KEY - {0}, INCR_DATA - {1}, AFTER_GETSET_0 - {2}\n"
+        logger.debug(frm.format(key, res1, res2))
+
+    async def rd_incrbyfloat_cmd(self):
+        """
+        Increment the string representing a floating point number stored at
+          key by the specified increment. By using a negative increment value,
+          the result is that the value stored at the key is decremented
+          (by the obvious properties of addition). If the key does not exist,
+          it is set to 0 before performing the operation. An error is returned
+          if one of the following conditions occur:
+            The key contains a value of the wrong type (not a string).
+            The current key content or the specified increment are not
+            parsable as a double precision floating point number.
+
+        :return: None
+        """
+        key = 'key'
+        start_float_num = 10.50
+        with await self.rd as conn:
+            await conn.set(key, start_float_num)
+            res1 = await conn.incrbyfloat(key, 0.1)
+            res2 = await conn.incrbyfloat(key, -5.0)
+            conn.delete(key)
+        frm = "STR_CMD - 'INCRBYFLOAT': KEY - {0}, INCR_FLOAT - {1}, DECR_FLOAT - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
 
