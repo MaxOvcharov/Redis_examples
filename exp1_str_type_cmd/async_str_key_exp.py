@@ -30,6 +30,7 @@ class RedisStrCommands:
         await self.rd_setbit_cmd()
         await self.rd_getbit_cmd()
         await self.rd_getrange_cmd()
+        await self.rd_getset_cmd()
 
     async def rd_set_cmd(self):
         """
@@ -377,6 +378,31 @@ class RedisStrCommands:
             res2 = await conn.getrange(key, start2, end2)
             conn.delete(key)
         frm = "STR_CMD - 'GETRANGE': KEY - {0}, DIRECT - {1}, REVERS - {2}\n"
+        logger.debug(frm.format(key, res1, res2))
+
+    async def rd_getset_cmd(self):
+        """
+        Atomically sets key to value and returns the old value stored
+          at key. Returns an error when key exists but does not hold
+          a string value.
+          'Design pattern':
+            GETSET can be used together with INCR for counting with
+            atomic reset. For example: a process may call INCR against
+            the key mycounter every time some event occurs, but from
+            time to time we need to get the value of the counter and
+            reset it to zero atomically. This can be done using
+            GETSET mycounter "0"
+
+        :return: None
+        """
+        key = 'key'
+        set_val = 0
+        with await self.rd as conn:
+            await conn.incr(key)
+            res1 = await conn.getset(key, set_val)
+            res2 = await conn.get(key)
+            conn.delete(key)
+        frm = "STR_CMD - 'GETSET': KEY - {0}, INCR_DATA - {1}, AFTER_GETSET_0 - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
 
