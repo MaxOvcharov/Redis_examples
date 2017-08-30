@@ -15,7 +15,6 @@ class RedisStrCommands:
         self.rd = rd
 
     async def run_rd_str_commands(self):
-        await self.rd_set_cmd()
         await self.rd_append_cmd()
         await self.rd_bitcount_cmd()
         await self.rd_bitop_and_cmd()
@@ -24,31 +23,16 @@ class RedisStrCommands:
         await self.rd_bitop_not_cmd()
         await self.rd_bitpos_cmd()
         await self.rd_decr_cmd()
-        await self.rd_incr_cmd()
         await self.rd_decrby_cmd()
+        await self.rd_incr_cmd()
         await self.rd_incrby_cmd()
+        await self.rd_incrbyfloat_cmd()
+        await self.rd_set_cmd()
         await self.rd_setbit_cmd()
+        await self.rd_setex_cmd()
         await self.rd_getbit_cmd()
         await self.rd_getrange_cmd()
         await self.rd_getset_cmd()
-        await self.rd_incrbyfloat_cmd()
-
-    async def rd_set_cmd(self):
-        """
-        Set key to hold the string value. If key already holds a value, it is
-        overwritten, regardless of its type. Any previous time to live associated
-        with the key is discarded on successful SET operation.
-
-        :return: None
-        """
-        key = 'str_set_cmd'
-        value = 'test_str_set_cmd'
-        with await self.rd as conn:
-            await conn.set(key, value)
-            res = await conn.get(key)
-            conn.delete(key)
-        frm = "STR_CMD - 'SET -> GET': KEY - {0}, VALUE - {1}\n"
-        logger.debug(frm.format(key, res))
 
     async def rd_append_cmd(self):
         """
@@ -308,6 +292,47 @@ class RedisStrCommands:
         frm = "STR_CMD - 'INCRBY': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, value, res))
 
+    async def rd_incrbyfloat_cmd(self):
+        """
+        Increment the string representing a floating point number stored at
+          key by the specified increment. By using a negative increment value,
+          the result is that the value stored at the key is decremented
+          (by the obvious properties of addition). If the key does not exist,
+          it is set to 0 before performing the operation. An error is returned
+          if one of the following conditions occur:
+            The key contains a value of the wrong type (not a string).
+            The current key content or the specified increment are not
+            parsable as a double precision floating point number.
+
+        :return: None
+        """
+        key = 'key'
+        start_float_num = 10.50
+        with await self.rd as conn:
+            await conn.set(key, start_float_num)
+            res1 = await conn.incrbyfloat(key, 0.1)
+            res2 = await conn.incrbyfloat(key, -5.0)
+            conn.delete(key)
+        frm = "STR_CMD - 'INCRBYFLOAT': KEY - {0}, INCR_FLOAT - {1}, DECR_FLOAT - {2}\n"
+        logger.debug(frm.format(key, res1, res2))
+
+    async def rd_set_cmd(self):
+        """
+        Set key to hold the string value. If key already holds a value, it is
+        overwritten, regardless of its type. Any previous time to live associated
+        with the key is discarded on successful SET operation.
+
+        :return: None
+        """
+        key = 'str_set_cmd'
+        value = 'test_str_set_cmd'
+        with await self.rd as conn:
+            await conn.set(key, value)
+            res = await conn.get(key)
+            conn.delete(key)
+        frm = "STR_CMD - 'SET -> GET': KEY - {0}, VALUE - {1}\n"
+        logger.debug(frm.format(key, res))
+
     async def rd_setbit_cmd(self):
         """
         Sets or clears the bit at offset in the string value stored at key.
@@ -332,6 +357,28 @@ class RedisStrCommands:
             conn.delete(key)
         frm = "STR_CMD - 'SETBIT': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, [res1, res1_val], [res2, res2_val]))
+
+    async def rd_setex_cmd(self):
+        """
+        Set key to hold the string value and set key to timeout
+          after a given number of seconds. This command is
+          equivalent to executing the following commands:
+            SET mykey value
+            EXPIRE mykey seconds
+
+        :return: None
+        """
+        key = 'key'
+        value = 'test_str_setex_cmd'
+        time_of_ex = 10
+        with await self.rd as conn:
+            await conn.setex(key, time_of_ex, value)
+            await asyncio.sleep(2)
+            ttl = await conn.ttl(key)
+            res = await conn.get(key)
+            conn.delete(key)
+        frm = "STR_CMD - 'SETEX': KEY - {0}, TIME_OF_EX - {1}, VALUE - {2}\n"
+        logger.debug(frm.format(key, ttl, res))
 
     async def rd_getbit_cmd(self):
         """
@@ -404,30 +451,6 @@ class RedisStrCommands:
             res2 = await conn.get(key)
             conn.delete(key)
         frm = "STR_CMD - 'GETSET': KEY - {0}, INCR_DATA - {1}, AFTER_GETSET_0 - {2}\n"
-        logger.debug(frm.format(key, res1, res2))
-
-    async def rd_incrbyfloat_cmd(self):
-        """
-        Increment the string representing a floating point number stored at
-          key by the specified increment. By using a negative increment value,
-          the result is that the value stored at the key is decremented
-          (by the obvious properties of addition). If the key does not exist,
-          it is set to 0 before performing the operation. An error is returned
-          if one of the following conditions occur:
-            The key contains a value of the wrong type (not a string).
-            The current key content or the specified increment are not
-            parsable as a double precision floating point number.
-
-        :return: None
-        """
-        key = 'key'
-        start_float_num = 10.50
-        with await self.rd as conn:
-            await conn.set(key, start_float_num)
-            res1 = await conn.incrbyfloat(key, 0.1)
-            res2 = await conn.incrbyfloat(key, -5.0)
-            conn.delete(key)
-        frm = "STR_CMD - 'INCRBYFLOAT': KEY - {0}, INCR_FLOAT - {1}, DECR_FLOAT - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
 
