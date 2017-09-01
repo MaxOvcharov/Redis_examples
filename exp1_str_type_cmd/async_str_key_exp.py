@@ -30,6 +30,7 @@ class RedisStrCommands:
         await self.rd_set_cmd()
         await self.rd_setbit_cmd()
         await self.rd_setex_cmd()
+        await self.rd_setnx_cmd()
         await self.rd_getbit_cmd()
         await self.rd_getrange_cmd()
         await self.rd_getset_cmd()
@@ -379,6 +380,28 @@ class RedisStrCommands:
             conn.delete(key)
         frm = "STR_CMD - 'SETEX': KEY - {0}, TIME_OF_EX - {1}, VALUE - {2}\n"
         logger.debug(frm.format(key, ttl, res))
+
+    async def rd_setnx_cmd(self):
+        """
+        Set key to hold string value if key does not exist.
+          In that case, it is equal to SET. When key already
+          holds a value, no operation is performed.
+          SETNX is short for "SET if Not eXists".
+            Return value:
+              1 if the key was set
+              0 if the key was not set
+
+        :return: None
+        """
+        key = 'key'
+        value = 'test_str_setnx_cmd'
+        time_of_ex = 10
+        with await self.rd as conn:
+            res1 = await conn.setnx(key, value)
+            res2 = await conn.setnx(key, value)
+            conn.delete(key)
+        frm = "STR_CMD - 'SETNX': KEY - {0}, FIRST_SET - {1}, SECOND_SET - {2}\n"
+        logger.debug(frm.format(key, res1, res2))
 
     async def rd_getbit_cmd(self):
         """
