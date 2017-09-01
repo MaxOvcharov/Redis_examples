@@ -31,6 +31,7 @@ class RedisStrCommands:
         await self.rd_setbit_cmd()
         await self.rd_setex_cmd()
         await self.rd_setnx_cmd()
+        await self.rd_setrange_cmd()
         await self.rd_getbit_cmd()
         await self.rd_getrange_cmd()
         await self.rd_getset_cmd()
@@ -395,12 +396,36 @@ class RedisStrCommands:
         """
         key = 'key'
         value = 'test_str_setnx_cmd'
-        time_of_ex = 10
         with await self.rd as conn:
             res1 = await conn.setnx(key, value)
             res2 = await conn.setnx(key, value)
             conn.delete(key)
         frm = "STR_CMD - 'SETNX': KEY - {0}, FIRST_SET - {1}, SECOND_SET - {2}\n"
+        logger.debug(frm.format(key, res1, res2))
+
+    async def rd_setrange_cmd(self):
+        """
+        Overwrites part of the string stored at key, starting at
+          the specified offset, for the entire length of value.
+          If the offset is larger than the current length of the
+          string at key, the string is padded with zero-bytes to
+          make offset fit. Non-existing keys are considered as
+          empty strings, so this command will make sure it holds a
+          string large enough to be able to set value at offset.
+
+        :return: None
+        """
+        key = 'key'
+        value = 'Hello World'
+        new_value = 'Redis'
+        offset = 6
+        with await self.rd as conn:
+            await conn.set(key, value)
+            res1 = await conn.get(key)
+            await conn.setrange(key, offset, new_value)
+            res2 = await conn.get(key)
+            conn.delete(key)
+        frm = "STR_CMD - 'SETRANGE': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
     async def rd_getbit_cmd(self):
