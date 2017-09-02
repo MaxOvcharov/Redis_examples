@@ -35,6 +35,7 @@ class RedisStrCommands:
         await self.rd_getbit_cmd()
         await self.rd_getrange_cmd()
         await self.rd_getset_cmd()
+        await self.rd_mget_cmd()
         await self.rd_strlen_cmd()
 
     async def rd_append_cmd(self):
@@ -501,6 +502,26 @@ class RedisStrCommands:
             conn.delete(key)
         frm = "STR_CMD - 'GETSET': KEY - {0}, INCR_DATA - {1}, AFTER_GETSET_0 - {2}\n"
         logger.debug(frm.format(key, res1, res2))
+
+    async def rd_mget_cmd(self):
+        """
+        Returns the values of all specified keys. For every key that
+          does not hold a string value or does not exist, the special
+          value nil is returned. Because of this, the operation never fails.
+
+        :return: None
+        """
+        key1 = 'key1'
+        key2 = 'key2'
+        set_val1 = 'TEST!1'
+        set_val2 = 'TEST2'
+        with await self.rd as conn:
+            await conn.set(key1, set_val1)
+            await conn.set(key2, set_val2)
+            res = await conn.mget(key1, key2)
+            conn.delete(key1, key2)
+        frm = "STR_CMD - 'MGET': KEY1 - {0}, KEY2 - {1}, MGET_RES - {2}\n"
+        logger.debug(frm.format(key1, key2, res))
 
     async def rd_strlen_cmd(self):
         """
