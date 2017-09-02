@@ -32,6 +32,7 @@ class RedisStrCommands:
         await self.rd_setex_cmd()
         await self.rd_setnx_cmd()
         await self.rd_setrange_cmd()
+        await self.rd_mset_cmd()
         await self.rd_getbit_cmd()
         await self.rd_getrange_cmd()
         await self.rd_getset_cmd()
@@ -430,6 +431,29 @@ class RedisStrCommands:
         frm = "STR_CMD - 'SETRANGE': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
+    async def rd_mset_cmd(self):
+        """
+        Sets the given keys to their respective values.
+          MSET replaces existing values with new values,
+          just as regular SET.
+        See MSETNX if you don't want to overwrite existing values.
+        MSET is atomic, so all given keys are set at once.
+          It is not possible for clients to see that some of
+          the keys were updated while others are unchanged.
+
+        :return: None
+        """
+        key1 = 'key1'
+        key2 = 'key2'
+        set_val1 = 'TEST1'
+        set_val2 = 'TEST2'
+        with await self.rd as conn:
+            await conn.mset(key1, set_val1, key2, set_val2)
+            res = await conn.mget(key1, key2)
+            conn.delete(key1, key2)
+        frm = "STR_CMD - 'MSET': KEY1, 2 - {0}, MSET_RES - {1}\n"
+        logger.debug(frm.format([key1, key2], res))
+
     async def rd_getbit_cmd(self):
         """
         Returns the bit value at offset in the string value stored at key.
@@ -513,7 +537,7 @@ class RedisStrCommands:
         """
         key1 = 'key1'
         key2 = 'key2'
-        set_val1 = 'TEST!1'
+        set_val1 = 'TEST1'
         set_val2 = 'TEST2'
         with await self.rd as conn:
             await conn.set(key1, set_val1)
