@@ -35,6 +35,7 @@ class RedisStrCommands:
         await self.rd_getbit_cmd()
         await self.rd_getrange_cmd()
         await self.rd_getset_cmd()
+        await self.rd_strlen_cmd()
 
     async def rd_append_cmd(self):
         """
@@ -500,6 +501,25 @@ class RedisStrCommands:
             conn.delete(key)
         frm = "STR_CMD - 'GETSET': KEY - {0}, INCR_DATA - {1}, AFTER_GETSET_0 - {2}\n"
         logger.debug(frm.format(key, res1, res2))
+
+    async def rd_strlen_cmd(self):
+        """
+        Returns the length of the string value stored at key.
+          An error is returned when key holds a non-string value.
+          Return value:
+            Integer reply: the length of the string at key,
+            or 0 when key does not exist.
+
+        :return: None
+        """
+        key = 'key'
+        set_val = 'test_str_strlen_cmd'
+        with await self.rd as conn:
+            await conn.set(key, set_val)
+            res = await conn.strlen(key)
+            conn.delete(key)
+        frm = "STR_CMD - 'STRLEN': KEY - {0}, RES(test_str_strlen_cmd) - {1}\n"
+        logger.debug(frm.format(key, res))
 
 
 def main():
