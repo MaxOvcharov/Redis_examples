@@ -38,6 +38,7 @@ class RedisStrCommands:
         await self.rd_getset_cmd()
         await self.rd_mget_cmd()
         await self.rd_strlen_cmd()
+        await self.rd_msetnx_cmd()
 
     async def rd_append_cmd(self):
         """
@@ -453,6 +454,34 @@ class RedisStrCommands:
             conn.delete(key1, key2)
         frm = "STR_CMD - 'MSET': KEY1, 2 - {0}, MSET_RES - {1}\n"
         logger.debug(frm.format([key1, key2], res))
+
+    async def rd_msetnx_cmd(self):
+        """
+        Sets the given keys to their respective values.
+          MSETNX will not perform any operation at all
+          even if just a single key already exists.
+          Because of this semantic MSETNX can be used in
+          order to set different keys representing different
+          fields of an unique logic object in a way that ensures
+          that either all the fields or none at all are set.
+          MSETNX is atomic, so all given keys are set at once.
+          It is not possible for clients to see that some of
+          the keys were updated while others are unchanged.
+          Return value:
+            "1" - if the all the keys were set.
+            "0" - if no key was set (at least one key already existed).
+
+        :return: None
+        """
+        key1, key2, key3 = 'key1', 'key2', 'key3'
+        set_val1, set_val2, set_val3 = 'TEST1', 'TEST2', 'TEST3'
+        with await self.rd as conn:
+            await conn.msetnx(key1, set_val1, key2, set_val2)
+            await conn.msetnx(key2, set_val2, key3, set_val3)
+            res = await conn.mget(key1, key2, key3)
+            conn.delete(key1, key2)
+        frm = "STR_CMD - 'MSETNX': KEY1, 2 - {0}, MSETNX_RES - {1}\n"
+        logger.debug(frm.format([key1, key2, key3], res))
 
     async def rd_getbit_cmd(self):
         """
