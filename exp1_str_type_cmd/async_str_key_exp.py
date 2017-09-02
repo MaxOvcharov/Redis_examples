@@ -33,6 +33,7 @@ class RedisStrCommands:
         await self.rd_setnx_cmd()
         await self.rd_setrange_cmd()
         await self.rd_mset_cmd()
+        await self.rd_psetex_cmd()
         await self.rd_getbit_cmd()
         await self.rd_getrange_cmd()
         await self.rd_getset_cmd()
@@ -482,6 +483,26 @@ class RedisStrCommands:
             conn.delete(key1, key2)
         frm = "STR_CMD - 'MSETNX': KEY1, 2 - {0}, MSETNX_RES - {1}\n"
         logger.debug(frm.format([key1, key2, key3], res))
+
+    async def rd_psetex_cmd(self):
+        """
+        PSETEX works exactly like SETEX with the sole difference
+          that the expire time is specified in milliseconds
+          instead of seconds.
+
+        :return: None
+        """
+        key = 'key'
+        value = 'test_str_psetex_cmd'
+        time_of_ex = 5020
+        with await self.rd as conn:
+            await conn.psetex(key, time_of_ex, value)
+            await asyncio.sleep(2)
+            ttl = await conn.pttl(key)
+            res = await conn.get(key)
+            conn.delete(key)
+        frm = "STR_CMD - 'PSETEX': KEY - {0}, TIME_OF_EX - {1}, VALUE - {2}\n"
+        logger.debug(frm.format(key, ttl, res))
 
     async def rd_getbit_cmd(self):
         """
