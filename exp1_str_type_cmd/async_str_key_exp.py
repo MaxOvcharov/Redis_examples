@@ -50,8 +50,7 @@ class RedisStrCommands:
         :return: None
         """
         key = 'str_append_cmd'
-        value1 = 'test_str_append(new)_cmd___'
-        value2 = 'test_str_append_cmd'
+        value1, value2 = 'test_str_append(new)_cmd___', 'test_str_append_cmd'
         with await self.rd as conn:
             await conn.append(key, value1)
             await conn.append(key, value2)
@@ -97,11 +96,8 @@ class RedisStrCommands:
 
         :return: None
         """
-        destkey = 'str_bitop_and_cmd'
-        key1 = 'key_1'
-        key2 = 'key_2'
-        value1 = 'foobar'
-        value2 = 'abcdef'
+        destkey, key1, key2 = 'str_bitop_and_cmd', 'key_1', 'key_1'
+        value1, value2 = 'foobar', 'abcdef'
         with await self.rd as conn:
             await conn.set(key1, value1)
             await conn.set(key2, value2)
@@ -129,10 +125,8 @@ class RedisStrCommands:
         :return: None
         """
         destkey = 'str_bitop_or_cmd'
-        key1 = 'key_1'
-        key2 = 'key_2'
-        value1 = 'foobar'
-        value2 = 'abcdef'
+        key1, key2 = 'key_1', 'key_2'
+        value1, value2 = 'foobar', 'abcdef'
         with await self.rd as conn:
             await conn.set(key1, value1)
             await conn.set(key2, value2)
@@ -160,10 +154,8 @@ class RedisStrCommands:
         :return: None
         """
         destkey = 'str_bitop_xor_cmd'
-        key1 = 'key_1'
-        key2 = 'key_2'
-        value1 = 'foobar'
-        value2 = 'abcdef'
+        key1, key2 = 'key_1', 'key_2'
+        value1, value2 = 'foobar', 'abcdef'
         with await self.rd as conn:
             await conn.set(key1, value1)
             await conn.set(key2, value2)
@@ -190,8 +182,7 @@ class RedisStrCommands:
 
         :return: None
         """
-        destkey = 'str_bitop_xor_cmd'
-        key1 = 'key_1'
+        destkey, key1 = 'str_bitop_xor_cmd', 'key_1'
         value1 = 'foobar'
         with await self.rd as conn:
             await conn.set(key1, value1)
@@ -354,8 +345,7 @@ class RedisStrCommands:
         """
         key = 'key'
         offset = 7
-        bit_val1 = 1
-        bit_val2 = 0
+        bit_val1, bit_val2 = 1, 0
         with await self.rd as conn:
             res1 = await conn.setbit(key, offset, bit_val1)
             res1_val = await conn.get(key)
@@ -421,8 +411,7 @@ class RedisStrCommands:
         :return: None
         """
         key = 'key'
-        value = 'Hello World'
-        new_value = 'Redis'
+        value, new_value = 'Hello World', 'Redis'
         offset = 6
         with await self.rd as conn:
             await conn.set(key, value)
@@ -445,10 +434,8 @@ class RedisStrCommands:
 
         :return: None
         """
-        key1 = 'key1'
-        key2 = 'key2'
-        set_val1 = 'TEST1'
-        set_val2 = 'TEST2'
+        key1, key2 = 'key_1', 'key_2'
+        set_val1, set_val2 = 'TEST1', 'TEST2'
         with await self.rd as conn:
             await conn.mset(key1, set_val1, key2, set_val2)
             res = await conn.mget(key1, key2)
@@ -474,7 +461,7 @@ class RedisStrCommands:
 
         :return: None
         """
-        key1, key2, key3 = 'key1', 'key2', 'key3'
+        key1, key2, key3 = 'key_1', 'key_2', 'key_3'
         set_val1, set_val2, set_val3 = 'TEST1', 'TEST2', 'TEST3'
         with await self.rd as conn:
             await conn.msetnx(key1, set_val1, key2, set_val2)
@@ -516,8 +503,7 @@ class RedisStrCommands:
         :return: None
         """
         key = 'key'
-        offset1 = 7
-        offset2 = 0
+        offset1, offset2 = 7, 0
         bit_val1 = 1
         with await self.rd as conn:
             await conn.setbit(key, offset1, bit_val1)
@@ -539,10 +525,8 @@ class RedisStrCommands:
         :return: None
         """
         key = 'key'
-        start1 = 0
-        end1 = 3
-        start2 = -6
-        end2 = -1
+        start1, end1 = 0, 3
+        start2, end2 = -6, -1
         val1 = "This is a string"
         with await self.rd as conn:
             await conn.set(key, val1)
@@ -585,10 +569,8 @@ class RedisStrCommands:
 
         :return: None
         """
-        key1 = 'key1'
-        key2 = 'key2'
-        set_val1 = 'TEST1'
-        set_val2 = 'TEST2'
+        key1, key2 = 'key_1', 'key_2'
+        set_val1, set_val2 = 'TEST1', 'TEST2'
         with await self.rd as conn:
             await conn.set(key1, set_val1)
             await conn.set(key2, set_val2)
