@@ -17,6 +17,7 @@ class RedisGenericCommands:
     async def run_generic_cmd(self):
         await self.rd_del_cmd()
         await self.rd_dump_cmd()
+        await self.rd_exists_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -53,6 +54,21 @@ class RedisGenericCommands:
             await conn.delete(key1)
         frm = "GENERIC_CMD - 'DUMP': KEY- {0}, SERIALIZE - {1}, DESERIALIZE - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_exists_cmd(self):
+        """
+        Returns if key(s) exists.
+
+        :return: None
+        """
+        key1, key2, key3 = 'key_1', 'key_2', 'not_exist_key'
+        value1, value2, value3 = 'TEST1', 'TEST2', 'TEST3'
+        with await self.rd as conn:
+            await conn.mset(key1, value1, key2, value2)
+            res = await conn.exists(key1, key2, key3)
+            await conn.delete(key1, key2, key3)
+        frm = "GENERIC_CMD - 'EXISTS': KEY- {0}, EXISTS_KEYS_NUM - {1}\n"
+        logger.debug(frm.format([key1, key2, key3], res))
 
 
 def main():
