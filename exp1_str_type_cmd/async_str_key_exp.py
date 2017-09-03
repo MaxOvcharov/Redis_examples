@@ -14,7 +14,7 @@ class RedisStrCommands:
     def __init__(self, rd):
         self.rd = rd
 
-    async def run_rd_str_commands(self):
+    async def run_str_cmd(self):
         await self.rd_append_cmd()
         await self.rd_bitcount_cmd()
         await self.rd_bitop_and_cmd()
@@ -55,7 +55,7 @@ class RedisStrCommands:
             await conn.append(key, value1)
             await conn.append(key, value2)
             res = await conn.get(key)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'APPEND(NEW) -> APPEND -> GET': KEY - {0}, VALUE - {1}\n"
         logger.debug(frm.format(key, res))
 
@@ -75,7 +75,7 @@ class RedisStrCommands:
             res1 = await conn.bitcount(key)
             res2 = await conn.bitcount(key, 0, 0)
             res3 = await conn.bitcount(key, 0, 15)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'BITCOUNT': KEY - {0}, VALUE - {1}\n"
         logger.debug(frm.format(key, [res1, res2, res3]))
 
@@ -103,7 +103,7 @@ class RedisStrCommands:
             await conn.set(key2, value2)
             res1 = await conn.bitop_and(destkey, key1, key2)
             res2 = await conn.get(destkey)
-            conn.delete(destkey, key1, key2)
+            await conn.delete(destkey, key1, key2)
         frm = "STR_CMD - 'BITOP_AND': KEY - {0}, VALUE - {1}\n"
         logger.debug(frm.format(destkey, [res1, res2]))
 
@@ -132,7 +132,7 @@ class RedisStrCommands:
             await conn.set(key2, value2)
             res1 = await conn.bitop_or(destkey, key1, key2)
             res2 = await conn.get(destkey)
-            conn.delete(destkey, key1, key2)
+            await conn.delete(destkey, key1, key2)
         frm = "STR_CMD - 'BITOP_OR': KEY - {0}, VALUE - {1}\n"
         logger.debug(frm.format(destkey, [res1, res2]))
 
@@ -161,7 +161,7 @@ class RedisStrCommands:
             await conn.set(key2, value2)
             res1 = await conn.bitop_xor(destkey, key1, key2)
             res2 = await conn.get(destkey)
-            conn.delete(destkey, key1, key2)
+            await conn.delete(destkey, key1, key2)
         frm = "STR_CMD - 'BITOP_XOR': KEY - {0}, VALUE - {1}\n"
         logger.debug(frm.format(destkey, [res1, res2]))
 
@@ -188,7 +188,7 @@ class RedisStrCommands:
             await conn.set(key1, value1)
             res1 = await conn.bitop_not(destkey, key1)
             res2 = await conn.get(destkey)
-            conn.delete(destkey, key1)
+            await conn.delete(destkey, key1)
         frm = "STR_CMD - 'BITOP_NOT': KEY - {0}, VALUE - {1}\n"
         logger.debug(frm.format(destkey, [res1, res2]))
 
@@ -210,7 +210,7 @@ class RedisStrCommands:
         with await self.rd as conn:
             await conn.set(key, value)
             res = await conn.bitpos(key, 1, 0)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'BITPOS': KEY - {0}, VALUE - {1}\n"
         logger.debug(frm.format(key, res))
 
@@ -229,7 +229,7 @@ class RedisStrCommands:
         with await self.rd as conn:
             await conn.set(key, value)
             res = await conn.decr(key)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'DECR': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, value, res))
 
@@ -248,7 +248,7 @@ class RedisStrCommands:
         with await self.rd as conn:
             await conn.set(key, value)
             res = await conn.decrby(key, 3)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'DECRBY': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, value, res))
 
@@ -267,7 +267,7 @@ class RedisStrCommands:
         with await self.rd as conn:
             await conn.set(key, value)
             res = await conn.incr(key)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'INCR': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, value, res))
 
@@ -286,7 +286,7 @@ class RedisStrCommands:
         with await self.rd as conn:
             await conn.set(key, value)
             res = await conn.incrby(key, 4)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'INCRBY': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, value, res))
 
@@ -310,7 +310,7 @@ class RedisStrCommands:
             await conn.set(key, start_float_num)
             res1 = await conn.incrbyfloat(key, 0.1)
             res2 = await conn.incrbyfloat(key, -5.0)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'INCRBYFLOAT': KEY - {0}, INCR_FLOAT - {1}, DECR_FLOAT - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
@@ -327,7 +327,7 @@ class RedisStrCommands:
         with await self.rd as conn:
             await conn.set(key, value)
             res = await conn.get(key)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'SET -> GET': KEY - {0}, VALUE - {1}\n"
         logger.debug(frm.format(key, res))
 
@@ -351,7 +351,7 @@ class RedisStrCommands:
             res1_val = await conn.get(key)
             res2 = await conn.setbit(key, offset, bit_val2)
             res2_val = await conn.get(key)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'SETBIT': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, [res1, res1_val], [res2, res2_val]))
 
@@ -373,7 +373,7 @@ class RedisStrCommands:
             await asyncio.sleep(2)
             ttl = await conn.ttl(key)
             res = await conn.get(key)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'SETEX': KEY - {0}, TIME_OF_EX - {1}, VALUE - {2}\n"
         logger.debug(frm.format(key, ttl, res))
 
@@ -394,7 +394,7 @@ class RedisStrCommands:
         with await self.rd as conn:
             res1 = await conn.setnx(key, value)
             res2 = await conn.setnx(key, value)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'SETNX': KEY - {0}, FIRST_SET - {1}, SECOND_SET - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
@@ -418,7 +418,7 @@ class RedisStrCommands:
             res1 = await conn.get(key)
             await conn.setrange(key, offset, new_value)
             res2 = await conn.get(key)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'SETRANGE': KEY - {0}, BEFORE - {1}, AFTER - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
@@ -439,7 +439,7 @@ class RedisStrCommands:
         with await self.rd as conn:
             await conn.mset(key1, set_val1, key2, set_val2)
             res = await conn.mget(key1, key2)
-            conn.delete(key1, key2)
+            await conn.delete(key1, key2)
         frm = "STR_CMD - 'MSET': KEY1, 2 - {0}, MSET_RES - {1}\n"
         logger.debug(frm.format([key1, key2], res))
 
@@ -467,7 +467,7 @@ class RedisStrCommands:
             await conn.msetnx(key1, set_val1, key2, set_val2)
             await conn.msetnx(key2, set_val2, key3, set_val3)
             res = await conn.mget(key1, key2, key3)
-            conn.delete(key1, key2)
+            await conn.delete(key1, key2)
         frm = "STR_CMD - 'MSETNX': KEY1, 2 - {0}, MSETNX_RES - {1}\n"
         logger.debug(frm.format([key1, key2, key3], res))
 
@@ -487,7 +487,7 @@ class RedisStrCommands:
             await asyncio.sleep(2)
             ttl = await conn.pttl(key)
             res = await conn.get(key)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'PSETEX': KEY - {0}, TIME_OF_EX - {1}, VALUE - {2}\n"
         logger.debug(frm.format(key, ttl, res))
 
@@ -509,7 +509,7 @@ class RedisStrCommands:
             await conn.setbit(key, offset1, bit_val1)
             res1 = await conn.getbit(key, offset2)
             res2 = await conn.getbit(key, offset1)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'GETBIT': KEY - {0}, NOT_SETBIT - {1}, SETBIT - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
@@ -532,7 +532,7 @@ class RedisStrCommands:
             await conn.set(key, val1)
             res1 = await conn.getrange(key, start1, end1)
             res2 = await conn.getrange(key, start2, end2)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'GETRANGE': KEY - {0}, DIRECT - {1}, REVERS - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
@@ -557,7 +557,7 @@ class RedisStrCommands:
             await conn.incr(key)
             res1 = await conn.getset(key, set_val)
             res2 = await conn.get(key)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'GETSET': KEY - {0}, INCR_DATA - {1}, AFTER_GETSET_0 - {2}\n"
         logger.debug(frm.format(key, res1, res2))
 
@@ -575,7 +575,7 @@ class RedisStrCommands:
             await conn.set(key1, set_val1)
             await conn.set(key2, set_val2)
             res = await conn.mget(key1, key2)
-            conn.delete(key1, key2)
+            await conn.delete(key1, key2)
         frm = "STR_CMD - 'MGET': KEY1 - {0}, KEY2 - {1}, MGET_RES - {2}\n"
         logger.debug(frm.format(key1, key2, res))
 
@@ -594,7 +594,7 @@ class RedisStrCommands:
         with await self.rd as conn:
             await conn.set(key, set_val)
             res = await conn.strlen(key)
-            conn.delete(key)
+            await conn.delete(key)
         frm = "STR_CMD - 'STRLEN': KEY - {0}, RES(test_str_strlen_cmd) - {1}\n"
         logger.debug(frm.format(key, res))
 
@@ -607,7 +607,7 @@ def main():
     rd_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis']))
     rsc = RedisStrCommands(rd_conn.rd)
     try:
-        loop.run_until_complete(rsc.run_rd_str_commands())
+        loop.run_until_complete(rsc.run_str_cmd())
     except KeyboardInterrupt as e:
         logger.error("Caught keyboard interrupt {0}\nCanceling tasks...".format(e))
     finally:
