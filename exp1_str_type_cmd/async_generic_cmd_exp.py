@@ -18,6 +18,7 @@ class RedisGenericCommands:
         await self.rd_del_cmd()
         await self.rd_dump_cmd()
         await self.rd_exists_cmd()
+        await self.rd_expire_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -69,6 +70,37 @@ class RedisGenericCommands:
             await conn.delete(key1, key2, key3)
         frm = "GENERIC_CMD - 'EXISTS': KEY- {0}, EXISTS_KEYS_NUM - {1}\n"
         logger.debug(frm.format([key1, key2, key3], res))
+
+    async def rd_expire_cmd(self):
+        """
+        Set a timeout on key. After the timeout has expired, the key
+          will automatically be deleted. A key with an associated
+          timeout is often said to be volatile in Redis terminology.
+          The timeout will only be cleared by commands that delete or
+          overwrite the contents of the key, including DEL, SET, GETSET
+          and all the *STORE commands. This means that all the operations
+          that conceptually alter the value stored at the key without
+          replacing it with a new one will leave the timeout untouched.
+          For instance, incrementing the value of a key with INCR, pushing
+          a new value into a list with LPUSH, or altering the field value
+          of a hash with HSET are all operations that will leave the
+          timeout untouched.
+
+        :return: None
+        """
+        key = 'key'
+        value = 'TEST'
+        time_of_ex = 10
+        with await self.rd as conn:
+            await conn.set(key, value)
+            await conn.expire(key, time_of_ex)
+            await asyncio.sleep(2)
+            ttl1 = await conn.ttl(key)
+            await conn.set(key, value)
+            ttl2 = await conn.ttl(key)
+            await conn.delete(key)
+        frm = "GENERIC_CMD - 'EXPIRE': KEY- {0}, BEFORE_EX - ({1} sec), AFTER_EX - ({2} sec)\n"
+        logger.debug(frm.format(key, ttl1, ttl2))
 
 
 def main():
