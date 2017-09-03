@@ -16,6 +16,7 @@ class RedisGenericCommands:
 
     async def run_generic_cmd(self):
         await self.rd_del_cmd()
+        await self.rd_dump_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -32,6 +33,26 @@ class RedisGenericCommands:
             res = await conn.delete(key1, key2, key3)
         frm = "GENERIC_CMD - 'DELETE': KEY 1,2,3- {0}, DEL_NUM - {1}\n"
         logger.debug(frm.format([key1, key2, key3], res))
+
+    async def rd_dump_cmd(self):
+        """
+        Serialize the value stored at key in a Redis-specific format and
+          return it to the user. The returned value can be synthesized
+          back into a Redis key using the RESTORE command.
+
+        :return: None
+        """
+        key1 = 'key_1'
+        value1 = 'TEST1'
+        with await self.rd as conn:
+            await conn.set(key1, value1)
+            res1 = await conn.dump(key1)
+            await conn.delete(key1)
+            await conn.restore(key1, 0, res1)
+            res2 = await conn.get(key1)
+            await conn.delete(key1)
+        frm = "GENERIC_CMD - 'DUMP': KEY- {0}, SERIALIZE - {1}, DESERIALIZE - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
 
 
 def main():
