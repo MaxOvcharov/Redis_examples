@@ -3,6 +3,7 @@
     Simple example of Redis Generic commands using async lib - aioredis
 """
 import asyncio
+import datetime as dt
 import os
 
 from redis_client import rd_client_factory
@@ -19,6 +20,7 @@ class RedisGenericCommands:
         await self.rd_dump_cmd()
         await self.rd_exists_cmd()
         await self.rd_expire_cmd()
+        await self.rd_expireat_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -100,6 +102,29 @@ class RedisGenericCommands:
             ttl2 = await conn.ttl(key)
             await conn.delete(key)
         frm = "GENERIC_CMD - 'EXPIRE': KEY- {0}, BEFORE_EX - ({1} sec), AFTER_EX - ({2} sec)\n"
+        logger.debug(frm.format(key, ttl1, ttl2))
+
+    async def rd_expireat_cmd(self):
+        """
+        EXPIREAT has the same effect and semantic as EXPIRE, but instead of
+          specifying the number of seconds representing the TTL (time to live),
+          it takes an absolute Unix timestamp (seconds since January 1, 1970).
+          A timestamp in the past will delete the key immediately.
+
+        :return: None
+        """
+        key = 'key'
+        value = 'TEST'
+        date_of_ex = (dt.datetime.now() + dt.timedelta(days=1)).timestamp()
+        with await self.rd as conn:
+            await conn.set(key, value)
+            await conn.expireat(key, date_of_ex)
+            await asyncio.sleep(2)
+            ttl1 = await conn.ttl(key)
+            await conn.set(key, value)
+            ttl2 = await conn.ttl(key)
+            await conn.delete(key)
+        frm = "GENERIC_CMD - 'EXPIREAT': KEY- {0}, BEFORE_EX - ({1} sec), AFTER_EX - ({2} sec)\n"
         logger.debug(frm.format(key, ttl1, ttl2))
 
 
