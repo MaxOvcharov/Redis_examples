@@ -21,6 +21,7 @@ class RedisGenericCommands:
         await self.rd_exists_cmd()
         await self.rd_expire_cmd()
         await self.rd_expireat_cmd()
+        await self.rd_keys_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -126,6 +127,29 @@ class RedisGenericCommands:
             await conn.delete(key)
         frm = "GENERIC_CMD - 'EXPIREAT': KEY- {0}, BEFORE_EX - ({1} sec), AFTER_EX - ({2} sec)\n"
         logger.debug(frm.format(key, ttl1, ttl2))
+
+    async def rd_keys_cmd(self):
+        """
+        Returns all keys matching pattern.
+          Supported glob-style patterns:
+            h?llo matches hello, hallo and hxllo
+            h*llo matches hllo and heeeello
+            h[ae]llo matches hello and hallo, but not hillo
+            h[^e]llo matches hallo, hbllo, ... but not hello
+            h[a-b]llo matches hallo and hbllo
+          Use \ to escape special characters if you want to match them verbatim.
+
+        :return: None
+        """
+        key1, key2, key3, key4 = 'one', 'two', 'three', 'four'
+        value1, value2, value3, value4 = 1, 2, 3, 4
+        pattern = '*o*'
+        with await self.rd as conn:
+            await conn.mset(key1, value1, key2, value2, key3, value3, key4, value4)
+            res = await conn.keys(pattern)
+            await conn.delete(key1, key2, key3, key4)
+        frm = "GENERIC_CMD - 'KEYS': KEY- {0}, PATTERN - {1}, RES - {2}\n"
+        logger.debug(frm.format([key1, key2, key3, key4], pattern, res))
 
 
 def main():
