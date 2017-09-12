@@ -28,6 +28,7 @@ class RedisGenericCommands:
         # await self.rd_move_cmd()
         await self.rd_object_refcount_cmd()
         await self.rd_object_encoding_cmd()
+        await self.rd_object_idletime_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -244,6 +245,28 @@ class RedisGenericCommands:
             await conn.delete(key1)
         frm = "GENERIC_CMD - 'OBJECT ENCODING': KEY- %s, BEFORE - %s, AFTER - %s\n"
         logger.debug(frm, key1, res_int, res_str)
+
+    async def rd_object_idletime_cmd(self):
+        """
+        The OBJECT command supports multiple sub commands:
+          OBJECT IDLETIME <key> returns the number of seconds since
+          the object stored at the specified key is idle (not requested
+          by read or write operations). While the value is returned in
+          seconds the actual resolution of this timer is 10 seconds,
+          but may vary in future implementations.
+
+        :return: None
+        """
+        key1 = 'key_1'
+        value1 = 'TEST1'
+        with await self.rd1 as conn:
+            await conn.set(key1, value1)
+            await asyncio.sleep(3)
+            res = await conn.object_idletime(key1)
+            await conn.delete(key1)
+        frm = "GENERIC_CMD - 'OBJECT IDLETIME': KEY- %s, IDLETIME - %s\n"
+        logger.debug(frm, key1, res)
+
 
 def main():
     # load config from yaml file
