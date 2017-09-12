@@ -18,14 +18,15 @@ class RedisGenericCommands:
         self.rd_conf = conf
 
     async def run_generic_cmd(self):
-        await self.rd_del_cmd()
-        await self.rd_dump_cmd()
-        await self.rd_exists_cmd()
-        await self.rd_expire_cmd()
-        await self.rd_expireat_cmd()
-        await self.rd_keys_cmd()
-        await self.rd_migrate_cmd()
-        await self.rd_move_cmd()
+        # await self.rd_del_cmd()
+        # await self.rd_dump_cmd()
+        # await self.rd_exists_cmd()
+        # await self.rd_expire_cmd()
+        # await self.rd_expireat_cmd()
+        # await self.rd_keys_cmd()
+        # await self.rd_migrate_cmd()
+        # await self.rd_move_cmd()
+        await self.rd_object_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -206,6 +207,23 @@ class RedisGenericCommands:
         frm = "GENERIC_CMD - 'MOVE': KEY- %s, MOVE_RES - %s, DB2_RES - %s\n"
         logger.debug(frm, key1, db1_res, db2_res)
 
+    async def rd_object_cmd(self):
+        """
+        The OBJECT command supports multiple sub commands:
+          OBJECT REFCOUNT <key> returns the number of references of the
+          value associated with the specified key. This command is
+          mainly useful for debugging.
+
+        :return: None
+        """
+        key1 = 'key_1'
+        value1 = 'TEST1'
+        with await self.rd1 as conn:
+            await conn.set(key1, value1)
+            res = await conn.object_refcount(key1)
+            await conn.delete(key1)
+        frm = "GENERIC_CMD - 'OBJECT REFCOUNT': KEY- %s, REFCOUNT - %s\n"
+        logger.debug(frm, key1, res)
 
 def main():
     # load config from yaml file
