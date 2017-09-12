@@ -1,7 +1,15 @@
-redis:
+redis1:
   db: 1
   password: 121212
   host: localhost
   port: 6379
   minsize: 1
   maxsize: 5
+
+redis2:
+ db: 2
+ password: 121212
+ host: localhost
+ port: 6379
+ minsize: 1
+ maxsize: 5

@@ -12,8 +12,10 @@ from utils import load_config
 
 
 class RedisGenericCommands:
-    def __init__(self, rd):
-        self.rd = rd
+    def __init__(self, rd1, rd2, conf=None):
+        self.rd1 = rd1
+        self.rd2 = rd2
+        self.rd_conf = conf
 
     async def run_generic_cmd(self):
         await self.rd_del_cmd()
@@ -22,6 +24,7 @@ class RedisGenericCommands:
         await self.rd_expire_cmd()
         await self.rd_expireat_cmd()
         await self.rd_keys_cmd()
+        await self.rd_migrate_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -33,7 +36,7 @@ class RedisGenericCommands:
         """
         key1, key2, key3 = 'key_1', 'key_2', 'key_3'
         value1, value2 = 'TEST1', 'TEST2'
-        with await self.rd as conn:
+        with await self.rd1 as conn:
             await conn.mset(key1, value1, key2, value2)
             res = await conn.delete(key1, key2, key3)
         frm = "GENERIC_CMD - 'DELETE': KEY 1,2,3- {0}, DEL_NUM - {1}\n"
@@ -49,7 +52,7 @@ class RedisGenericCommands:
         """
         key1 = 'key_1'
         value1 = 'TEST1'
-        with await self.rd as conn:
+        with await self.rd1 as conn:
             await conn.set(key1, value1)
             res1 = await conn.dump(key1)
             await conn.delete(key1)
@@ -67,7 +70,7 @@ class RedisGenericCommands:
         """
         key1, key2, key3 = 'key_1', 'key_2', 'not_exist_key'
         value1, value2, value3 = 'TEST1', 'TEST2', 'TEST3'
-        with await self.rd as conn:
+        with await self.rd1 as conn:
             await conn.mset(key1, value1, key2, value2)
             res = await conn.exists(key1, key2, key3)
             await conn.delete(key1, key2, key3)
@@ -94,7 +97,7 @@ class RedisGenericCommands:
         key = 'key'
         value = 'TEST'
         time_of_ex = 10
-        with await self.rd as conn:
+        with await self.rd1 as conn:
             await conn.set(key, value)
             await conn.expire(key, time_of_ex)
             await asyncio.sleep(2)
@@ -117,7 +120,7 @@ class RedisGenericCommands:
         key = 'key'
         value = 'TEST'
         date_of_ex = (dt.datetime.now() + dt.timedelta(days=1)).timestamp()
-        with await self.rd as conn:
+        with await self.rd1 as conn:
             await conn.set(key, value)
             await conn.expireat(key, date_of_ex)
             await asyncio.sleep(2)
@@ -144,12 +147,40 @@ class RedisGenericCommands:
         key1, key2, key3, key4 = 'one', 'two', 'three', 'four'
         value1, value2, value3, value4 = 1, 2, 3, 4
         pattern = '*o*'
-        with await self.rd as conn:
+        with await self.rd1 as conn:
             await conn.mset(key1, value1, key2, value2, key3, value3, key4, value4)
             res = await conn.keys(pattern)
             await conn.delete(key1, key2, key3, key4)
         frm = "GENERIC_CMD - 'KEYS': KEY- {0}, PATTERN - {1}, RES - {2}\n"
         logger.debug(frm.format([key1, key2, key3, key4], pattern, res))
+
+    async def rd_migrate_cmd(self):
+        """
+        Atomically transfer a key from a source Redis instance to a destination
+          Redis instance. On success the key is deleted from the original instance
+          and is guaranteed to exist in the target instance.
+        The command is atomic and blocks the two instances for the time required
+          to transfer the key, at any given time the key will appear to exist in a
+          given instance or in the other instance, unless a timeout error occurs.
+          In 3.2 and above, multiple keys can be pipelined in a single call to MIGRATE
+          by passing the empty string ("") as key and adding the KEYS clause.
+
+        :return: None
+        """
+        key1, key2, key3, key4 = 'one', 'two', 'three', 'four'
+        value1, value2, value3, value4 = 1, 2, 3, 4
+        pattern = '*o*'
+        with await self.rd1 as conn:
+            await conn.mset(key1, value1, key2, value2, key3, value3, key4, value4)
+            db1_res = await conn.keys(pattern)
+            res = await conn.migrate(self.rd_conf['host'], self.rd_conf['port'], '*', 2, 5000)
+            await conn.delete(key1, key2, key3, key4)
+
+        with await self.rd2 as conn:
+            db2_res = await conn.keys(pattern)
+            await conn.delete(key1, key2, key3, key4)
+        frm = "GENERIC_CMD - 'KEYS': KEY- {0}, MIGRATE_KEY - {1}, DB1_RES - {2}, DB2_RES - {3}\n"
+        logger.debug(frm.format([key1, key2, key3, key4], pattern, db1_res, db2_res))
 
 
 def main():
@@ -157,14 +188,16 @@ def main():
     conf = load_config(os.path.join(BASE_DIR, "config_files/dev.yml"))
     # create event loop
     loop = asyncio.get_event_loop()
-    rd_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis']))
-    rgc = RedisGenericCommands(rd_conn.rd)
+    rd1_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis1']))
+    rd2_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis2']))
+    rgc = RedisGenericCommands(rd1_conn.rd, rd2_conn.rd, conf=conf['redis2'])
     try:
         loop.run_until_complete(rgc.run_generic_cmd())
     except KeyboardInterrupt as e:
         logger.error("Caught keyboard interrupt {0}\nCanceling tasks...".format(e))
     finally:
-        loop.run_until_complete(rd_conn.close_connection())
+        loop.run_until_complete(rd1_conn.close_connection())
+        loop.run_until_complete(rd2_conn.close_connection())
         loop.close()
 
 if __name__ == '__main__':
