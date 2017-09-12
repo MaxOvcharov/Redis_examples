@@ -26,7 +26,8 @@ class RedisGenericCommands:
         # await self.rd_keys_cmd()
         # await self.rd_migrate_cmd()
         # await self.rd_move_cmd()
-        await self.rd_object_cmd()
+        await self.rd_object_refcount_cmd()
+        await self.rd_object_encoding_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -207,7 +208,7 @@ class RedisGenericCommands:
         frm = "GENERIC_CMD - 'MOVE': KEY- %s, MOVE_RES - %s, DB2_RES - %s\n"
         logger.debug(frm, key1, db1_res, db2_res)
 
-    async def rd_object_cmd(self):
+    async def rd_object_refcount_cmd(self):
         """
         The OBJECT command supports multiple sub commands:
           OBJECT REFCOUNT <key> returns the number of references of the
@@ -224,6 +225,25 @@ class RedisGenericCommands:
             await conn.delete(key1)
         frm = "GENERIC_CMD - 'OBJECT REFCOUNT': KEY- %s, REFCOUNT - %s\n"
         logger.debug(frm, key1, res)
+
+    async def rd_object_encoding_cmd(self):
+        """
+        The OBJECT command supports multiple sub commands:
+          OBJECT ENCODING <key> returns the kind of internal representation
+          used in order to store the value associated with a key.
+
+        :return: None
+        """
+        key1 = 'key_1'
+        value1, value2 = '100', '_car'
+        with await self.rd1 as conn:
+            await conn.set(key1, value1)
+            res_int = await conn.object_encoding(key1)
+            await conn.append(key1, value2)
+            res_str = await conn.object_encoding(key1)
+            await conn.delete(key1)
+        frm = "GENERIC_CMD - 'OBJECT ENCODING': KEY- %s, BEFORE - %s, AFTER - %s\n"
+        logger.debug(frm, key1, res_int, res_str)
 
 def main():
     # load config from yaml file
