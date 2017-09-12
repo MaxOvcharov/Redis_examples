@@ -25,6 +25,7 @@ class RedisGenericCommands:
         await self.rd_expireat_cmd()
         await self.rd_keys_cmd()
         await self.rd_migrate_cmd()
+        await self.rd_move_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -179,8 +180,31 @@ class RedisGenericCommands:
         with await self.rd2 as conn:
             db2_res = await conn.keys(pattern)
             await conn.delete(key1, key2, key3, key4)
-        frm = "GENERIC_CMD - 'KEYS': KEY- {0}, MIGRATE_KEY - {1}, DB1_RES - {2}, DB2_RES - {3}\n"
+        frm = "GENERIC_CMD - 'MIGRATE': KEY- {0}, MIGRATE_KEY - {1}, DB1_RES - {2}, DB2_RES - {3}\n"
         logger.debug(frm.format([key1, key2, key3, key4], pattern, db1_res, db2_res))
+
+    async def rd_move_cmd(self):
+        """
+        Move key from the currently selected database (see SELECT) to
+          the specified destination database. When key already exists
+          in the destination database, or it does not exist in the
+          source database, it does nothing. It is possible to use MOVE
+          as a locking primitive because of this.
+
+        :return: None
+        """
+        key1 = 'key_1'
+        value1 = 'TEST1'
+        with await self.rd1 as conn:
+            await conn.set(key1, value1)
+            db1_res = await conn.move(key1, 2)
+            await conn.delete(key1)
+
+        with await self.rd2 as conn:
+            db2_res = await conn.get(key1)
+            await conn.delete(key1)
+        frm = "GENERIC_CMD - 'MOVE': KEY- %s, MOVE_RES - %s, DB2_RES - %s\n"
+        logger.debug(frm, key1, db1_res, db2_res)
 
 
 def main():
