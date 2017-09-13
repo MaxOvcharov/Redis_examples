@@ -31,7 +31,8 @@ class RedisGenericCommands:
         # await self.rd_object_idletime_cmd()
         # await self.rd_persist_cmd()
         # await self.rd_pexpire_cmd()
-        await self.rd_pexpireat_cmd()
+        # await self.rd_pexpireat_cmd()
+        await self.rd_pttl_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -341,6 +342,32 @@ class RedisGenericCommands:
             await conn.delete(key1)
         frm = "GENERIC_CMD - 'PEXPIREAT': KEY- %s, TTL - %s sec, PTTL- %s msec\n"
         logger.debug(frm, key1, res_1, res_2)
+
+    async def rd_pttl_cmd(self):
+        """
+        Like TTL this command returns the remaining time to live of a key
+          that has an expire set, with the sole difference that TTL returns
+          the amount of remaining time in seconds while PTTL returns it
+          in milliseconds.
+          Return value in case of error changed:
+            -2 - if the key does not exist.
+            -1 - if the key exists but has no associated expire.
+
+        :return: None
+        """
+        key1 = 'key_1'
+        value1 = 'TEST1'
+        pttl = 10000
+        with await self.rd1 as conn:
+            res_1 = await conn.pttl(key1)
+            await conn.set(key1, value1)
+            res_2 = await conn.pttl(key1)
+            await conn.pexpire(key1, pttl)
+            await asyncio.sleep(1)
+            res_3 = await conn.pttl(key1)
+            await conn.delete(key1)
+        frm = "GENERIC_CMD - 'PTTL': KEY- %s, PTTL_NO_KEY - %s, PTTL_NO_EXP- %s, PTTL- %s msec\n"
+        logger.debug(frm, key1, res_1, res_2, res_3)
 
 
 def main():
