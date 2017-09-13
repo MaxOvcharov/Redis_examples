@@ -18,21 +18,22 @@ class RedisGenericCommands:
         self.rd_conf = conf
 
     async def run_generic_cmd(self):
-        # await self.rd_del_cmd()
-        # await self.rd_dump_cmd()
-        # await self.rd_exists_cmd()
-        # await self.rd_expire_cmd()
-        # await self.rd_expireat_cmd()
-        # await self.rd_keys_cmd()
-        # await self.rd_migrate_cmd()
-        # await self.rd_move_cmd()
-        # await self.rd_object_refcount_cmd()
-        # await self.rd_object_encoding_cmd()
-        # await self.rd_object_idletime_cmd()
-        # await self.rd_persist_cmd()
-        # await self.rd_pexpire_cmd()
-        # await self.rd_pexpireat_cmd()
+        await self.rd_del_cmd()
+        await self.rd_dump_cmd()
+        await self.rd_exists_cmd()
+        await self.rd_expire_cmd()
+        await self.rd_expireat_cmd()
+        await self.rd_keys_cmd()
+        await self.rd_migrate_cmd()
+        await self.rd_move_cmd()
+        await self.rd_object_refcount_cmd()
+        await self.rd_object_encoding_cmd()
+        await self.rd_object_idletime_cmd()
+        await self.rd_persist_cmd()
+        await self.rd_pexpire_cmd()
+        await self.rd_pexpireat_cmd()
         await self.rd_pttl_cmd()
+        await self.rd_randomkey_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -366,8 +367,26 @@ class RedisGenericCommands:
             await asyncio.sleep(1)
             res_3 = await conn.pttl(key1)
             await conn.delete(key1)
-        frm = "GENERIC_CMD - 'PTTL': KEY- %s, PTTL_NO_KEY - %s, PTTL_NO_EXP- %s, PTTL- %s msec\n"
+        frm = "GENERIC_CMD - 'PTTL': KEY - %s, PTTL_NO_KEY - %s, PTTL_NO_EXP - %s, PTTL - %s msec\n"
         logger.debug(frm, key1, res_1, res_2, res_3)
+
+    async def rd_randomkey_cmd(self):
+        """
+        Return a random key from the currently selected database.
+          Return value:
+            Bulk string reply: the random key, or nil when the database is empty.
+
+        :return: None
+        """
+        key1 = 'key_1'
+        value1 = 'TEST1'
+        with await self.rd1 as conn:
+            res_1 = await conn.randomkey()
+            await conn.set(key1, value1)
+            res_2 = await conn.randomkey()
+            await conn.delete(key1)
+        frm = "GENERIC_CMD - 'RANDOMKEY': KEY- %s, BEFORE_RANDOMKEY - %s, AFTER_RANDOMKEY - %s\n"
+        logger.debug(frm, key1, res_1, res_2)
 
 
 def main():
