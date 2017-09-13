@@ -26,9 +26,10 @@ class RedisGenericCommands:
         # await self.rd_keys_cmd()
         # await self.rd_migrate_cmd()
         # await self.rd_move_cmd()
-        await self.rd_object_refcount_cmd()
-        await self.rd_object_encoding_cmd()
-        await self.rd_object_idletime_cmd()
+        # await self.rd_object_refcount_cmd()
+        # await self.rd_object_encoding_cmd()
+        # await self.rd_object_idletime_cmd()
+        await self.rd_persist_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -266,6 +267,31 @@ class RedisGenericCommands:
             await conn.delete(key1)
         frm = "GENERIC_CMD - 'OBJECT IDLETIME': KEY- %s, IDLETIME - %s\n"
         logger.debug(frm, key1, res)
+
+    async def rd_persist_cmd(self):
+        """
+        Remove the existing timeout on key, turning the key from volatile
+          (a key with an expire set) to persistent (a key that will never
+          expire as no timeout is associated).
+          Return value:
+            True if the timeout was removed.
+            False if key does not exist or does not have an associated timeout.
+
+        :return: None
+        """
+        key1 = 'key_1'
+        value1 = 'TEST1'
+        ttl = 10
+        with await self.rd1 as conn:
+            await conn.setex(key1, ttl, value1)
+            res_1 = await conn.ttl(key1)
+            pers_res1 = await conn.persist(key1)
+            res_2 = await conn.ttl(key1)
+            pers_res2 = await conn.persist(key1)
+            await conn.delete(key1)
+        frm = "GENERIC_CMD - 'PERSIST': KEY- %s, TTL_BEFORE - %s," \
+              " TTL_AFTER - %s, PERS_BEFORE - %s, PERS_AFTER - %s\n"
+        logger.debug(frm, key1, res_1, res_2, pers_res1, pers_res2)
 
 
 def main():
