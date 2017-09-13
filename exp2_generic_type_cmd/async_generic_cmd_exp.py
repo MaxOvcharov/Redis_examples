@@ -30,7 +30,8 @@ class RedisGenericCommands:
         # await self.rd_object_encoding_cmd()
         # await self.rd_object_idletime_cmd()
         # await self.rd_persist_cmd()
-        await self.rd_pexpire_cmd()
+        # await self.rd_pexpire_cmd()
+        await self.rd_pexpireat_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -315,6 +316,30 @@ class RedisGenericCommands:
             res_2 = await conn.pttl(key1)
             await conn.delete(key1)
         frm = "GENERIC_CMD - 'PEXPIRE': KEY- %s, PTTL_BEFORE - %s, PTTL_AFTER - %s\n"
+        logger.debug(frm, key1, res_1, res_2)
+
+    async def rd_pexpireat_cmd(self):
+        """
+        PEXPIREAT has the same effect and semantic as EXPIREAT, but the
+          Unix time at which the key will expire is specified in
+          milliseconds instead of seconds.
+          Return value:
+            True - if the timeout was set.
+            False - if key does not exist.
+
+        :return: None
+        """
+        key1 = 'key_1'
+        value1 = 'TEST1'
+        date_of_ex = (dt.datetime.now() + dt.timedelta(days=1)).timestamp()
+        with await self.rd1 as conn:
+            await conn.set(key1, value1)
+            await conn.pexpireat(key1, round(date_of_ex) * 1000)
+            await asyncio.sleep(1)
+            res_1 = await conn.ttl(key1)
+            res_2 = await conn.pttl(key1)
+            await conn.delete(key1)
+        frm = "GENERIC_CMD - 'PEXPIREAT': KEY- %s, TTL - %s sec, PTTL- %s msec\n"
         logger.debug(frm, key1, res_1, res_2)
 
 
