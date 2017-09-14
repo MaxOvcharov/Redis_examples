@@ -3,6 +3,7 @@
     Simple example of Redis Generic commands using async lib - aioredis
 """
 import asyncio
+import aioredis
 import datetime as dt
 import os
 
@@ -18,22 +19,23 @@ class RedisGenericCommands:
         self.rd_conf = conf
 
     async def run_generic_cmd(self):
-        await self.rd_del_cmd()
-        await self.rd_dump_cmd()
-        await self.rd_exists_cmd()
-        await self.rd_expire_cmd()
-        await self.rd_expireat_cmd()
-        await self.rd_keys_cmd()
-        await self.rd_migrate_cmd()
-        await self.rd_move_cmd()
-        await self.rd_object_refcount_cmd()
-        await self.rd_object_encoding_cmd()
-        await self.rd_object_idletime_cmd()
-        await self.rd_persist_cmd()
-        await self.rd_pexpire_cmd()
-        await self.rd_pexpireat_cmd()
-        await self.rd_pttl_cmd()
-        await self.rd_randomkey_cmd()
+        # await self.rd_del_cmd()
+        # await self.rd_dump_cmd()
+        # await self.rd_exists_cmd()
+        # await self.rd_expire_cmd()
+        # await self.rd_expireat_cmd()
+        # await self.rd_keys_cmd()
+        # await self.rd_migrate_cmd()
+        # await self.rd_move_cmd()
+        # await self.rd_object_refcount_cmd()
+        # await self.rd_object_encoding_cmd()
+        # await self.rd_object_idletime_cmd()
+        # await self.rd_persist_cmd()
+        # await self.rd_pexpire_cmd()
+        # await self.rd_pexpireat_cmd()
+        # await self.rd_pttl_cmd()
+        # await self.rd_randomkey_cmd()
+        await self.rd_rename_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -387,6 +389,31 @@ class RedisGenericCommands:
             await conn.delete(key1)
         frm = "GENERIC_CMD - 'RANDOMKEY': KEY- %s, BEFORE_RANDOMKEY - %s, AFTER_RANDOMKEY - %s\n"
         logger.debug(frm, key1, res_1, res_2)
+
+    async def rd_rename_cmd(self):
+        """
+        Renames key to newkey. It returns an error when key does not exist.
+          If newkey already exists it is overwritten, when this happens
+          RENAME executes an implicit DEL operation, so if the deleted
+          key contains a very big value it may cause high latency even
+          if RENAME itself is usually a constant-time operation.
+
+        :return: None
+        """
+        key1 = 'key_1'
+        key2 = 'new_key'
+        value1 = 'TEST1'
+        try:
+            with await self.rd1 as conn:
+                await conn.set(key1, value1)
+                res_rename1 = await conn.rename(key1, key2)
+                res1 = await conn.get(key2)
+                res_rename2 = await conn.rename(key1, key2)
+                await conn.delete(key1)
+        except aioredis.errors.ReplyError as e:
+            res_rename2 = e
+        frm = "GENERIC_CMD - 'RENAME': KEY- %s, RENAME - %s, EXIST_KEY - %s, NOT_EXIST_KEY - %s\n"
+        logger.debug(frm, [key1, key2], res1, res_rename1, res_rename2)
 
 
 def main():
