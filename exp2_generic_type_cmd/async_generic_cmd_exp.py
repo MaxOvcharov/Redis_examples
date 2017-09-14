@@ -36,6 +36,7 @@ class RedisGenericCommands:
         # await self.rd_pttl_cmd()
         # await self.rd_randomkey_cmd()
         await self.rd_rename_cmd()
+        await self.rd_renamenx_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -400,20 +401,47 @@ class RedisGenericCommands:
 
         :return: None
         """
-        key1 = 'key_1'
-        key2 = 'new_key'
+        key1, key2 = 'key_1', 'new_key'
         value1 = 'TEST1'
+        res1, res_rename1 = None, None
         try:
             with await self.rd1 as conn:
                 await conn.set(key1, value1)
                 res_rename1 = await conn.rename(key1, key2)
                 res1 = await conn.get(key2)
                 res_rename2 = await conn.rename(key1, key2)
-                await conn.delete(key1)
         except aioredis.errors.ReplyError as e:
+            await conn.delete(key1, key2)
             res_rename2 = e
         frm = "GENERIC_CMD - 'RENAME': KEY- %s, RENAME - %s, EXIST_KEY - %s, NOT_EXIST_KEY - %s\n"
         logger.debug(frm, [key1, key2], res1, res_rename1, res_rename2)
+
+    async def rd_renamenx_cmd(self):
+        """
+        Renames key to newkey if newkey does not yet exist.
+          It returns an error when key does not exist.
+          Return value:
+            True if key was renamed to newkey.
+            False if newkey already exists.
+
+        :return: None
+        """
+        key1, key2, key3 = 'key_1', 'new_key', 'exist_key'
+        value1, value3 = 'TEST1', 'TEST3'
+        res1, res_rename1, res_rename2, res_rename2 = None, None, None, None
+        try:
+            with await self.rd1 as conn:
+                await conn.mset(key1, value1, key3, value3)
+                res_rename1 = await conn.renamenx(key1, key2)
+                res1 = await conn.mget(key2)
+                res_rename2 = await conn.renamenx(key2, key3)
+                res_rename3 = await conn.renamenx(key1, key2)
+        except aioredis.errors.ReplyError as e:
+            await conn.delete(key1, key2, key3)
+            res_rename3 = e
+        frm = "GENERIC_CMD - 'RENAMENX': RENAME - %s," \
+              " NOT_EXIST_NEW_KEY - %s, EXIST_KEY_NEW - %s, NOT_EXIST_KEY - %s\n"
+        logger.debug(frm, res1, res_rename1, res_rename2, res_rename3)
 
 
 def main():
