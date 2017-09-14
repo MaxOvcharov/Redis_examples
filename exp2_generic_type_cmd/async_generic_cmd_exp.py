@@ -37,6 +37,7 @@ class RedisGenericCommands:
         # await self.rd_randomkey_cmd()
         await self.rd_rename_cmd()
         await self.rd_renamenx_cmd()
+        await self.rd_restore_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -442,6 +443,39 @@ class RedisGenericCommands:
         frm = "GENERIC_CMD - 'RENAMENX': RENAME - %s," \
               " NOT_EXIST_NEW_KEY - %s, EXIST_KEY_NEW - %s, NOT_EXIST_KEY - %s\n"
         logger.debug(frm, res1, res_rename1, res_rename2, res_rename3)
+
+    async def rd_restore_cmd(self):
+        """
+        Create a key associated with a value that is obtained by
+          deserializing the provided serialized value (obtained via DUMP).
+          If ttl is 0 the key is created without any expire, otherwise
+          the specified expire time (in milliseconds) is set.
+          RESTORE will return a "Target key name is busy" error when key
+          already exists unless you use the REPLACE modifier (Redis 3.0 or greater).
+          RESTORE checks the RDB version and data checksum. If they don't
+          match an error is returned.
+
+        :return: None
+        """
+        key1 = 'key_1'
+        value1 = 'TEST1'
+        value_restore = "\n\x17\x17\x00\x00\x00\x12\x00\x00\x00\x03\x00\
+                        x00\xc0\x01\x00\x04\xc0\x02\x00\x04\xc0\x03\x00\
+                        xff\x04\x00u#<\xc0;.\xe9\xdd"
+        ttl = 0
+        res_restore, res_type, res = None, None, None
+        try:
+            with await self.rd1 as conn:
+                await conn.set(key1, value1)
+                await conn.delete(key1)
+                res_restore = await conn.restore(key1, ttl, value_restore)
+                res_type = await conn.type(key1)
+                res = await conn.LRANGE(key1, 0, -1)
+        except aioredis.errors.ReplyError as e:
+            res_restore = e
+            await conn.delete(key1)
+        frm = "GENERIC_CMD - 'RESTORE': RESTORE_RES - %s, KEY_TYPE - %s, RESTORE_VALUE - %s\n"
+        logger.debug(frm, res_restore, res_type, res)
 
 
 def main():
