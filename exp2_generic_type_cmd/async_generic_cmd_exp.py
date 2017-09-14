@@ -414,7 +414,8 @@ class RedisGenericCommands:
         except aioredis.errors.ReplyError as e:
             await conn.delete(key1, key2)
             res_rename2 = e
-        frm = "GENERIC_CMD - 'RENAME': KEY- %s, RENAME - %s, EXIST_KEY - %s, NOT_EXIST_KEY - %s\n"
+        frm = "GENERIC_CMD - 'RENAME': KEY- %s, RENAME - %s," \
+              " EXIST_KEY - %s, NOT_EXIST_KEY - %s\n"
         logger.debug(frm, [key1, key2], res1, res_rename1, res_rename2)
 
     async def rd_renamenx_cmd(self):
