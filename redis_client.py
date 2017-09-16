@@ -5,8 +5,7 @@ from functools import wraps
 import aioredis
 
 from custom_errors import RedisConnectionLost
-from settings import logger, REDIS_RECONNECT_DELAY, \
-    REDIS_RECONNECT_RETRIES, SERVICE_PREFIX, CHAT_PREFIX, SERVER_NAME
+from settings import logger, REDIS_RECONNECT_DELAY, REDIS_RECONNECT_RETRIES
 from utils import deserialize_json, serialize_json
 
 
@@ -97,8 +96,6 @@ def acquire_connection(retry_delay=REDIS_RECONNECT_DELAY,
                         self._connection = connection
                         return await coro(self, *args, **kwargs)
                 except aioredis.errors.ConnectionClosedError:
-                    # TODO: проверить что пул не забивается упавшими connections
-                    # TODO: проверить, что не возникает конфликтов в случае множества соединений одного redis
                     logger.error('Connection to redis lost. Retry after %s s.', retry_delay)
                     await asyncio.sleep(retry_delay)
                 finally:
@@ -180,9 +177,8 @@ class RedisClient:
     async def close_connection(self):
         """
         Данный метод предназначен для закрытия соединения к серверу
-          Redis. А также в случае выключения Сервера Приложения
-          Мобильного Бэкенда(СПМБ) корректно закрывает открытое
-          сооединение к серверу Redis.
+          Redis. А также в случае прерывания работы модуля корректно
+          закрывает открытое сооединение к серверу Redis.
 
         :return: None
         """
