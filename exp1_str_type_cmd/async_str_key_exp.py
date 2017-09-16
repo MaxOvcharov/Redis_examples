@@ -5,7 +5,7 @@
 import asyncio
 import os
 
-from redis_client import rd_client_factory
+from redis_client import rd_client_factory, RedisClient
 from settings import BASE_DIR, logger
 from utils import load_config
 
@@ -604,6 +604,7 @@ def main():
     conf = load_config(os.path.join(BASE_DIR, "config_files/dev.yml"))
     # create event loop
     loop = asyncio.get_event_loop()
+    # rd = await RedisClient.connect(conf=conf['redis'], loop=loop)
     rd_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis']))
     rsc = RedisStrCommands(rd_conn.rd)
     try:

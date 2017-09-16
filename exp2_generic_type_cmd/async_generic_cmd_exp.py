@@ -484,6 +484,8 @@ def main():
     conf = load_config(os.path.join(BASE_DIR, "config_files/dev.yml"))
     # create event loop
     loop = asyncio.get_event_loop()
+    # rd1 = await RedisClient.connect(conf=conf['redis'], loop=loop)
+    # rd2 = await RedisClient.connect(conf=conf['redis'], loop=loop)
     rd1_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis1']))
     rd2_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis2']))
     rgc = RedisGenericCommands(rd1_conn.rd, rd2_conn.rd, conf=conf['redis2'])
