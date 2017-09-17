@@ -46,19 +46,17 @@ async def rd_client_factory(loop, conf, client=RedisClient):
 
 def serializer(value, encode=True, native_type=str, full=False):
     """
-    Данный метод предназначен для сериализации данных, сохраняемых в кеш.
-      Redis поддерживает только строковые типы, поэтому все
-      Python объекты нужно конвертировать в строки (и обратно).
+    Serialize saving data into string format.
 
-    :param value: данные для сериализации
-    :type value: json.encoder.JSONEncoder или dict
-    :param encode: если True - конвертировать в JSON объект,
-      иначе - Python dict
-    :param object native_type: тип объекта для ключа в dict
-    :param bool full: если False - сериализовать объект полностью
+    :param value: serialize data
+    :type value: json.encoder.JSONEncoder or dict
+    :param encode: if True - convert to JSON,
+      else - Python dict
+    :param object native_type: dict key type
+    :param bool full: if False - full serialization for object
 
-    :return: JSON объект или dict
-    :rtype: json.encoder.JSONEncoder или dict
+    :return: JSON объект or dict
+    :rtype: json.encoder.JSONEncoder or dict
     """
     if encode:
         converter = serialize_json
@@ -66,8 +64,7 @@ def serializer(value, encode=True, native_type=str, full=False):
         converter = deserialize_json
 
     if not full and isinstance(value, abc.Mapping):
-        # в словарях сериализуются только значения,
-        # ключи всегда приводятся к строкам
+        # Serialize only values into dict
         return {native_type(k): converter(v) for k, v in value.items()}
 
     return converter(value)
@@ -76,14 +73,12 @@ def serializer(value, encode=True, native_type=str, full=False):
 def acquire_connection(retry_delay=REDIS_RECONNECT_DELAY,
                        num_retries=REDIS_RECONNECT_RETRIES):
     """
-    Данный декоратор предназначен для выборки соединения из пула, а также
-      для реконнекта в случае потери соединения c Redis.
+    Gets connection from pool and do reconnect if ConnectionClosedError raise.
 
-    :param int retry_delay: задержка в секундах между попытками
-      переподключения
-    :param int num_retries: количество попыток переподключения
+    :param int retry_delay: delay between retries
+    :param int num_retries: number of retries
 
-    :return: декорируемая функция
+    :return: function to decorate
     :rtype: object
     """
     def wrapper(coro):
@@ -109,21 +104,16 @@ def acquire_connection(retry_delay=REDIS_RECONNECT_DELAY,
 
 class RedisClient:
     """
-    Данный класс предназначен для создания соединения к
-      серверу Redis, а также реализован дополнительный
-      механизм переподключения к серверу с определенной
-      задержкой при попытках переподключения. В классе
-      реализованы методы, которые инкапсулируют методы
-      обращения в Redis.
+    This is a Redis client with reconnection. This class
+      includes some methods which encapsulate aioredis logic.
     """
     def __init__(self, loop, conf):
         """
-        Данный метод предназначен для инициализации нового клиента
-          к серверу Redis на основе входных параметров.
+        Initialises Redis client by configuration params
 
-        :param loop: экземпляр глобального цикла событий asyncio
+        :param loop: asyncio EventLoop
         :type loop: asyncio.unix_events._UnixSelectorEventLoop
-        :param dict conf: параметры из конфигурационного файла
+        :param dict conf: params from config file
 
         :return: None
         """
@@ -135,10 +125,9 @@ class RedisClient:
     @classmethod
     async def connect(cls, **options):
         """
-        Данный метод предназначен для создания соединения к серверу
-          Redis по установленным параметрам из конфигурационного файла.
+        This method creates Redis client.
 
-        :return obj self: экземпляра клиента к серверу Redis.
+        :return obj self: RedisClient instance
         """
         self = cls(**options)
         await self._init_connect()
@@ -147,14 +136,11 @@ class RedisClient:
     async def _init_connect(self, retry_delay=REDIS_RECONNECT_DELAY,
                             num_retries=REDIS_RECONNECT_RETRIES):
         """
-        Данный метод предназначен для создания соединения к серверу
-          Redis по установленным параметрам из конфигурационного
-          файла. В случае, если сервер Redis недоступен в данный
-          момент, производится повторная попытка переподключения.
+        This method create Redis client by config params.
+          If Redis server refused connection do retries.
 
-        :param int retry_delay: задержка в секундах между попытками
-          переподключения
-        :param int num_retries: количество попыток переподключения
+        :param int retry_delay: delay between retries
+        :param int num_retries: number of retries
 
         :return: None
         """
@@ -176,9 +162,7 @@ class RedisClient:
 
     async def close_connection(self):
         """
-        Данный метод предназначен для закрытия соединения к серверу
-          Redis. А также в случае прерывания работы модуля корректно
-          закрывает открытое сооединение к серверу Redis.
+        This method close connection to the Redis server.
 
         :return: None
         """
@@ -189,12 +173,12 @@ class RedisClient:
     @staticmethod
     def _serialize(value, full=False):
         """
-        Данный метод предназначен для сериализации данных в JSON.
+        This method serialize data into JSON object.
 
-        :param dict value: данные для сериализации
-        :param bool full: если False - сериализовать объект полностью
+        :param dict value: serialize data
+        :param bool full: if False - full serialization for object
 
-        :return: JSON объект
+        :return: JSON object
         :rtype: json.encoder.JSONEncoder
         """
         return serializer(value, encode=True, full=full)
@@ -202,20 +186,19 @@ class RedisClient:
     @staticmethod
     def _deserialize(value):
         """
-        Данный метод предназначен для сериализации данных в
-          Python объект(dict).
+        This method deserialize JSON object to Python dict.
 
-        :param value: данные для сериализации
+        :param value: deserialize data
         :type value: json.encoder.JSONEncoder
 
-        :return: Python объект(dict)
+        :return: Python object(dict)
         :rtype: dict
         """
         if value is None:
             return value
         return serializer(value, encode=False)
 
-    # Методы для работы с типом "STRING"
+    # Commands for STRING type
 
     @acquire_connection()
     async def getv(self, key, use_serializer=False):
