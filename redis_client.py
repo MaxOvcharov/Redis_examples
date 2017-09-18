@@ -203,14 +203,12 @@ class RedisClient:
     @acquire_connection()
     async def getv(self, key, use_serializer=False):
         """
-        Данный метод предназначен для получения данных по
-          ключу из Redis(string type)
+        Get the value of a key
 
-        :param str key: значение ключа
-        :param bool use_serializer: если True - необходимо
-          сериализовать результат, False - вернуть без изменений
+        :param str key: key name
+        :param bool use_serializer: if True - deserialize result
 
-        :return: результат запроса
+        :return: result
         :rtype: str
         """
         logger.debug('redis.getv: key=%s', key)
@@ -220,16 +218,13 @@ class RedisClient:
     @acquire_connection()
     async def getsetv(self, key, value, use_serializer=False):
         """
-        Данный метод предназначен для записи/обновлении данных по
-          ключу из Redis(string type). Если данные были изменены
-          возвращается старое значение.
+        Set the string value of a key and return its old value.
 
-        :param str key: значение ключа
-        :param str value: данные для записи в кэш
-        :param bool use_serializer: если True - необходимо
-          сериализовать результат, False - вернуть без изменений
+        :param str key: key name
+        :param str value: new value
+        :param bool use_serializer: if True - deserialize result
 
-        :return: результат запроса
+        :return: result
         :rtype: str
         """
         logger.debug('redis.getsetv: key=%s, value=%s', key, value)
@@ -239,15 +234,12 @@ class RedisClient:
     @acquire_connection()
     async def setv(self, key, value, ttl=None, use_serializer=False):
         """
-        Данный метод предназначен для записи данных по
-          ключу в Redis(string type). Возможно установка
-          времени жизни данных в кэше.
+        Set the string value of a key.
 
-        :param str key: значение ключа
-        :param str, dict value: данные для записи в кэш
-        :param int ttl: время жизни данных в кэш
-        :param bool use_serializer: если True - необходимо
-          сериализовать результат, False - вернуть без изменений
+        :param str key: key name
+        :param str, dict value: value for save
+        :param int ttl: time to live for key
+        :param bool use_serializer: if True - serialize result
 
         :return: None
         """
@@ -258,15 +250,13 @@ class RedisClient:
     @acquire_connection()
     async def setnx(self, key, value, use_serializer=False):
         """
-        Данный метод предназначен для записи данных, если они
-          отсутствуют в кэш, по ключу в Redis(string type).
+        Set the value of a key, only if the key does not exist.
 
-        :param str key: значение ключа
-        :param str, dict value: данные для записи в кэш
-        :param bool use_serializer: если True - необходимо
-          сериализовать результат, False - вернуть без изменений
+        :param str key: key name
+        :param str, dict value: value for save
+        :param bool use_serializer: if True - serialize result
 
-        :return: если 0 - данные уже существуют, 1 - данные записаны.
+        :return: if 0 - data exist, 1 - set data.
         :rtype: int
         """
         logger.debug('redis.setnx: key=%s, value=%s', key, value)
@@ -276,14 +266,12 @@ class RedisClient:
     @acquire_connection()
     async def mgetv(self, keys, use_serializer=False):
         """
-        Данный метод предназначен для получения данных по
-          ключам из Redis(string type)
+        Get the values of all the given keys.
 
-        :param list keys: список значений ключей
-        :param bool use_serializer: если True - необходимо
-          сериализовать результат, False - вернуть без изменений
+        :param list keys: list of keys
+        :param bool use_serializer: if True - deserialize result
 
-        :return: результат запроса
+        :return: result
         :rtype: list
         """
         logger.debug('redis.mget: keys=%s', ','.join(keys))
@@ -293,14 +281,11 @@ class RedisClient:
     @acquire_connection()
     async def msetv(self, pairs, ttl=None, use_serializer=False):
         """
-        Данный метод предназначен для записи данных по
-          ключам из Redis(string type). Возможно установка
-          времени жизни данных в кэше.
+        Set multiple keys to multiple values.
 
-        :param list, dict pairs: Список или словарь пара (ключ, значение)
-        :param int ttl: время жизни данных в кэш
-        :param bool use_serializer: если True - необходимо
-          сериализовать результат, False - вернуть без изменений
+        :param list, dict pairs: list or dict with key-value pairs
+        :param int ttl: time to live for keys
+        :param bool use_serializer: if True - serialize result
 
         :return: None
         """
@@ -316,16 +301,15 @@ class RedisClient:
 
         await pipe.execute()
 
-    # "Базовые" методы для работы с данными в Redis
+    # Generic commands
 
     @acquire_connection()
     async def expire(self, key, ttl):
         """
-        Данный метод предназначен для установки времени
-          жизни данных в Redis.
+        Set a timeout on key.
 
-        :param str key: значение ключа
-        :param int ttl: время жизни данных в кэш
+        :param str key: list of keys
+        :param int ttl: time to live for keys
 
         :return: None
         """
@@ -335,12 +319,11 @@ class RedisClient:
     @acquire_connection()
     async def keys(self, pattern):
         """
-        Данный метод предназначен для получения данных
-          из Redis по маске к имени ключа.
+        Returns all keys matching pattern.
 
-        :param str pattern: маске к имени ключа
+        :param str pattern: regex for key
 
-        :return: список значений подходящих к маске
+        :return: list of matching keys
         :rtype: list
         """
         logger.debug('redis.keys: pattern="%s"', pattern)
@@ -349,10 +332,9 @@ class RedisClient:
     @acquire_connection()
     async def delete(self, *keys):
         """
-        Данный метод предназначен для удаления данных
-          из Redis по ключам.
+        Delete a key.
 
-        :param list keys: список значений ключей
+        :param list keys: list of keys
 
         :return: None
         """
@@ -362,7 +344,7 @@ class RedisClient:
     @acquire_connection()
     async def flushdb(self):
         """
-        Данный метод предназначен для удаления всех данных из db в Redis.
+        Remove all keys from all databases.
 
         :return: None
         """
@@ -372,7 +354,7 @@ class RedisClient:
     @acquire_connection()
     async def flushall(self):
         """
-        Данный метод предназначен для удаления всех данных из всех db в Redis.
+        Remove all keys from the current database.
 
         :return: None
         """
@@ -382,9 +364,9 @@ class RedisClient:
     @acquire_connection()
     async def multi_exec(self):
         """
-        Данный метод предназначен создания объекта транзакции в Redis.
+        Returns MULTI/EXEC pipeline wrapper.
 
-        :return: объекта транзакции
+        :return: multy_exec pipeline
         :rtype: aioredis.commands.transaction.TransactionsCommandsMixin#multi_exec
         """
         logger.debug('redis.multi_exec')
@@ -395,17 +377,15 @@ class RedisClient:
     @acquire_connection()
     async def hset(self, key, field, value, use_serializer=True):
         """
-        Данный метод предназначен для записи данных в хэш-таблицу,
-          хранящююся в Redis по ключу.
+        Set the string value of a hash field.
 
-        :param str key: значение ключа
-        :param str field: значение ключа в хэш-таблице
-        :param str value: записываемое значение в хэш-таблицу
-        :param bool use_serializer: если True - необходимо
-          сериализовать результат, False - вернуть без изменений
+        :param str key: key name
+        :param str field: dict key
+        :param str, dict value: value for save
+        :param bool use_serializer: if True - serialize result
 
-        :return: если 1 - создано новая пара(field:value),
-          если 0 - обновлена существующая пара(field:value)
+        :return: if '1' - created new pair (field:value),
+          если '0' - updated old pair(field:value)
         :rtype: int
         """
         logger.debug('redis.hset: key=%s, field=%s, value=%s', key, field, value)
@@ -415,14 +395,12 @@ class RedisClient:
     @acquire_connection()
     async def hmset(self, key, pairs, ttl=None, use_serializer=True):
         """
-        Данный метод предназначен для записи данных в хэш-таблицу,
-          хранящююся в Redis по ключам.
+        Set multiple hash fields to multiple values.
 
-        :param str key: значение ключа
-        :param str pairs: пара(field:value) в хэш-таблице
-        :param int ttl: время жизни данных в кэш
-        :param bool use_serializer: если True - необходимо
-          сериализовать результат, False - вернуть без изменений
+        :param str key: key name
+        :param list, dict pairs: list or dict of pairs(field:value)
+        :param int ttl: time to live for keys
+        :param bool use_serializer: if True - serialize result
 
         :return: None
         """
@@ -440,15 +418,13 @@ class RedisClient:
     @acquire_connection()
     async def hget(self, key, field, use_serializer=True):
         """
-        Данный метод предназначен для получения данных из хэш-таблицы,
-          хранящейся в Redis по ключу.
+        Get the value of a hash field.
 
-        :param str key: значение ключа
-        :param str field: значение ключа в хэш-таблице
-        :param bool use_serializer: если True - необходимо
-          десериализовать результат, False - вернуть без изменений
+        :param str key: key name
+        :param str field: dict key
+        :param bool use_serializer: if True - deserialize result
 
-        :return: значение из хэш-таблицу по ключу
+        :return: result
         :rtype: str
         """
         logger.debug('redis.hget: key=%s, field=%s', key, field)
@@ -458,15 +434,13 @@ class RedisClient:
     @acquire_connection()
     async def hmget(self, key, fields, use_serializer=True):
         """
-        Данный метод предназначен для получения данных из хэш-таблицы,
-          хранящейся в Redis по ключу.
+        Get the values of all the given fields.
 
-        :param str key: значение ключа
-        :param tuple fields: значения ключей в хэш-таблице
-        :param bool use_serializer: если True - необходимо
-          десериализовать результат, False - вернуть без изменений
+        :param str key: key name
+        :param list fields: list of keys
+        :param bool use_serializer: if True - deserialize result
 
-        :return: значения из хэш-таблицу по ключам
+        :return: list of values
         :rtype: list
         """
         logger.debug('redis.hget: key=%s, field=%s', key, fields)
@@ -476,14 +450,12 @@ class RedisClient:
     @acquire_connection()
     async def hgetall(self, key, use_serializer=True):
         """
-        Данный метод предназначен для получения всех данных
-          из хэш-таблицы, хранящейся в Redis.
+        Get all the fields and values in a hash.
 
-        :param str key: значение ключа
-        :param bool use_serializer: если True - необходимо
-          десериализовать результат, False - вернуть без изменений
+        :param str key: key name
+        :param bool use_serializer: if True - deserialize result
 
-        :return: значения из хэш-таблицу по ключу
+        :return: list of values
         :rtype: list
         """
         logger.debug('redis.hgetall: key=%s', key)
@@ -491,20 +463,17 @@ class RedisClient:
         return self._deserialize(values) if use_serializer else values
 
     @acquire_connection()
-    async def hdel(self, key, fields, use_serializer=True):
+    async def hdel(self, key, fields):
         """
-        Данный метод предназначен для удаления данных по ключу
-          из хэш-таблицы, хранящейся в Redis.
+        Delete one or more hash fields.
 
-        :param str key: значение ключа
-        :param str fields: значения ключей в хэш-таблице
-        :param bool use_serializer: если True - необходимо
-          десериализовать результат, False - вернуть без изменений
+        :param str key: key name
+        :param list fields: list of keys
 
-        :return: если > 1 - количество удаленных сообщений,
-          если 0 - удаляемое сообщение отсутствует
+        :return: if res > '1' - number of deleted fields,
+          else '0' - no one fields were deleted
         :rtype: int
         """
         logger.debug('redis.hdel: key=%s, field=%s', key, fields)
-        value = await self._connection.hdel(key, fields)
-        return self._deserialize(value) if use_serializer else value
+        return await self._connection.hdel(key, fields)
+
