@@ -38,6 +38,7 @@ class RedisGenericCommands:
         await self.rd_rename_cmd()
         await self.rd_renamenx_cmd()
         await self.rd_restore_cmd()
+        await self.rd_ttl_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -477,6 +478,33 @@ class RedisGenericCommands:
             await conn.delete(key1)
         frm = "GENERIC_CMD - 'RESTORE': RESTORE_RES - %s, KEY_TYPE - %s, RESTORE_VALUE - %s\n"
         logger.debug(frm, res_restore, res_type, res)
+
+    async def rd_ttl_cmd(self):
+        """
+        Returns the remaining time to live of a key that
+          has a timeout. This introspection capability
+          allows a Redis client to check how many seconds
+          a given key will continue to be part of the dataset.
+          Return value in case of error changed:
+            - '-2' - if the key does not exist.
+            - '-1' - if the key exists but has no associated expire.
+
+        :return: None
+        """
+        key1, key2, key3 = 'key_1', 'key_2', 'key_3'
+        value1, value2 = 'test_ttl', 'test_ttl_not_ex'
+        ttl = 10
+        with await self.rd1 as conn:
+            await conn.setex(key1, ttl, value1)
+            await conn.set(key2, value2)
+            await asyncio.sleep(2)
+            res1 = await conn.ttl(key1)
+            res2 = await conn.ttl(key2)
+            res3 = await conn.ttl(key3)
+            await conn.delete(key1, key2, key3)
+        frm = "GENERIC_CMD - 'TTL': KEY- {0}, TTL_OK - {1}," \
+              " TTL_NOT_EXPIRE - {2}, TTL_NOT_EXIST - {3}, \n"
+        logger.debug(frm.format([key1, key2, key3], res1, res2, res3))
 
 
 def main():

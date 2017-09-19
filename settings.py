@@ -2,6 +2,8 @@ import asyncio
 import os
 import logging
 
+from logging import config
+
 __all__ = ['logger', 'BASE_DIR']
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -62,7 +64,7 @@ LOGGING_LEVEL = int(LOGGING_LEVEL_ENV) if LOGGING_LEVEL_ENV else logging.DEBUG
 
 def setup_logging(base_severity=LOGGING_LEVEL):
     """Logging setup"""
-    logging.config.dictConfig(LOGGING)
+    config.dictConfig(LOGGING)
     log = logging.getLogger(BASE_LOGGER)
     log.setLevel(base_severity)
 
