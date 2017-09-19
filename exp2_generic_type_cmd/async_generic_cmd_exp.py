@@ -19,26 +19,27 @@ class RedisGenericCommands:
         self.rd_conf = conf
 
     async def run_generic_cmd(self):
-        await self.rd_del_cmd()
-        await self.rd_dump_cmd()
-        await self.rd_exists_cmd()
-        await self.rd_expire_cmd()
-        await self.rd_expireat_cmd()
-        await self.rd_keys_cmd()
-        await self.rd_migrate_cmd()
-        await self.rd_move_cmd()
-        await self.rd_object_refcount_cmd()
-        await self.rd_object_encoding_cmd()
-        await self.rd_object_idletime_cmd()
-        await self.rd_persist_cmd()
-        await self.rd_pexpire_cmd()
-        await self.rd_pexpireat_cmd()
-        await self.rd_pttl_cmd()
-        await self.rd_randomkey_cmd()
-        await self.rd_rename_cmd()
-        await self.rd_renamenx_cmd()
-        await self.rd_restore_cmd()
-        await self.rd_ttl_cmd()
+        # await self.rd_del_cmd()
+        # await self.rd_dump_cmd()
+        # await self.rd_exists_cmd()
+        # await self.rd_expire_cmd()
+        # await self.rd_expireat_cmd()
+        # await self.rd_keys_cmd()
+        # await self.rd_migrate_cmd()
+        # await self.rd_move_cmd()
+        # await self.rd_object_refcount_cmd()
+        # await self.rd_object_encoding_cmd()
+        # await self.rd_object_idletime_cmd()
+        # await self.rd_persist_cmd()
+        # await self.rd_pexpire_cmd()
+        # await self.rd_pexpireat_cmd()
+        # await self.rd_pttl_cmd()
+        # await self.rd_randomkey_cmd()
+        # await self.rd_rename_cmd()
+        # await self.rd_renamenx_cmd()
+        # await self.rd_restore_cmd()
+        # await self.rd_ttl_cmd()
+        await self.rd_type_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -503,7 +504,33 @@ class RedisGenericCommands:
             res3 = await conn.ttl(key3)
             await conn.delete(key1, key2, key3)
         frm = "GENERIC_CMD - 'TTL': KEY- {0}, TTL_OK - {1}," \
-              " TTL_NOT_EXPIRE - {2}, TTL_NOT_EXIST - {3}, \n"
+              " TTL_NOT_EXPIRE - {2}, TTL_NOT_EXIST - {3}\n"
+        logger.debug(frm.format([key1, key2, key3], res1, res2, res3))
+
+    async def rd_type_cmd(self):
+        """
+        Returns the string representation of the type of the value
+          stored at key. The different types that can be returned are:
+            - string,
+            - list,
+            - set,
+            - zset,
+            - hash.
+
+        :return: None
+        """
+        key1, key2, key3 = 'key_1', 'key_2', 'key_3'
+        value1, value2, value3 = 'str', 'list', 'set'
+        with await self.rd1 as conn:
+            await conn.set(key1, value1)
+            await conn.lpush(key2, value2)
+            await conn.sadd(key3, value3)
+            res1 = await conn.type(key1)
+            res2 = await conn.type(key2)
+            res3 = await conn.type(key3)
+            await conn.delete(key1, key2, key3)
+        frm = "GENERIC_CMD - 'TYPE': KEY- {0}, TYPE_STR - {1}," \
+              " TYPE_LIST - {2}, TYPE_SET - {3}\n"
         logger.debug(frm.format([key1, key2, key3], res1, res2, res3))
 
 
