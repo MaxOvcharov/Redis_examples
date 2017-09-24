@@ -43,6 +43,7 @@ class RedisGenericCommands:
         await self.rd_ttl_cmd()
         await self.rd_type_cmd()
         await self.rd_scan_cmd()
+        await self.rd_iscan_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -560,6 +561,34 @@ class RedisGenericCommands:
                 matched_keys.extend(keys)
             await conn.flushdb()
         frm = "GENERIC_CMD - 'SCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
+        logger.debug(frm.format(key_tmp, match, len(matched_keys)))
+
+    async def rd_iscan_cmd(self):
+        """
+        Incrementally iterate the keys space using async for.
+
+        SCAN is a cursor based iterator. This means that at
+          every call of the command, the server returns an
+          updated cursor that the user needs to use as the
+          cursor argument in the next call. An iteration
+          starts when the cursor is set to 0, and terminates
+          when the cursor returned by the server is 0.
+
+        :return: None
+        """
+        values = ['test_%s', 'match_%s', 'scan_%s', 'sort_%s']
+        key_tmp = ['key_%s', 'test_%s', 'scan_%s']
+        match = b'test*'
+        matched_keys = []
+        with await self.rd1 as conn:
+            for i in range(1, 20):
+                await conn.set(choice(key_tmp) % i, choice(values) % i)
+
+            async for key in conn.iscan(match=match):
+                matched_keys.append(key)
+
+            await conn.flushdb()
+        frm = "GENERIC_CMD - 'ISCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
         logger.debug(frm.format(key_tmp, match, len(matched_keys)))
 
 
