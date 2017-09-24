@@ -6,6 +6,8 @@ import asyncio
 import aioredis
 import datetime as dt
 import os
+import random
+import string
 
 from random import choice
 
@@ -44,6 +46,7 @@ class RedisGenericCommands:
         await self.rd_type_cmd()
         await self.rd_scan_cmd()
         await self.rd_iscan_cmd()
+        await self.rd_sort_cmd()
 
     async def rd_del_cmd(self):
         """
@@ -590,6 +593,39 @@ class RedisGenericCommands:
             await conn.flushdb()
         frm = "GENERIC_CMD - 'ISCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
         logger.debug(frm.format(key_tmp, match, len(matched_keys)))
+
+    async def rd_sort_cmd(self):
+        """
+        SORT key [BY pattern] [LIMIT offset count]
+          [GET pattern [GET pattern ...]] [ASC|DESC] [ALPHA] [STORE destination]
+
+        Returns or stores the elements contained in the list, set or sorted set
+          at key. By default, sorting is numeric and elements are compared by
+          their value interpreted as double precision floating point number.
+
+        :return: None
+        """
+        values_int = [i for i in range(5)]
+        random.shuffle(values_int)
+        values_str = list(string.ascii_lowercase)[:5]
+        random.shuffle(values_str)
+        key_int, key_str, key_store = 'key_int', 'key_str', 'key_res'
+        with await self.rd1 as conn:
+            await conn.rpush(key_int, *values_int)
+            await conn.rpush(key_str, *values_str)
+            res_int = await conn.sort(key_int)
+            res_int_desc = await conn.sort(key_int, asc='DESC')
+            res_srt = await conn.sort(key_str, alpha=True, asc='DESC', offset=1, count=3)
+            await conn.sort(key_str, alpha=True, asc='DESC', offset=1, count=3, store=key_store)
+            res_store = await conn.lrange(key_store, 0, -1)
+            await conn.delete(key_int, key_str)
+        frm = "- GENERIC_CMD - 'SORT': KEY- {0}, IN_LIST_INT - {1},\n" \
+              "- OUT_LIST_INT - {2}, OUT_LIST_INT_DESC - {3}\n" \
+              "- IN_LIST_STR - {4}, OUT_LIST_STR_ALPHA - {5}\n" \
+              "- IN_LIST_STORE_RES - {5}, OUT_LIST_STORE_RES - {6}\n"
+        logger.debug(frm.format([key_int, key_str], values_int,
+                                res_int, res_int_desc,
+                                values_str, res_srt, res_store))
 
 
 def main():
