@@ -24,6 +24,7 @@ class RedisListCommands:
 
     async def run_list_cmd(self):
         await self.rd_rpush_cmd()
+        await self.rd_rpushx_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -48,6 +49,28 @@ class RedisListCommands:
             await conn.delete(key1)
         frm = "GENERIC_CMD - 'RPUSH': KEY- {0}, INDEX_NUM- {1}, RES - {2}\n"
         logger.debug(frm.format(key1, push_index, res))
+
+    async def rd_rpushx_cmd(self):
+        """
+        Inserts value at the tail of the list stored at key, only if key
+          already exists and holds a list. In contrary to RPUSH, no
+          operation will be performed when key does not yet exist.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values_push = 'TEST1'
+        values_pushx = 'TEST2'
+        with await self.rd1 as conn:
+            await conn.rpush(key1, values_push)
+            pushx_index1 = await conn.rpushx(key1, values_pushx)
+            pushx_index2 = await conn.rpushx(key2, values_pushx)
+            res1 = await conn.lrange(key1, 0, -1)
+            res2 = await conn.lrange(key2, 0, -1)
+            await conn.delete(key1, key2)
+        frm = "GENERIC_CMD - 'RPUSHX': KEYS- {0}, INDEX_EXIST- {1}, " \
+              "INDEX_NOT_EXIST- {2}, RES - {3}\n"
+        logger.debug(frm.format([key1, key2], pushx_index1, pushx_index2, [res1, res2]))
 
 
 def main():
