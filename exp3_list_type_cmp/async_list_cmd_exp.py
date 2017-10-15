@@ -28,6 +28,7 @@ class RedisListCommands:
         await self.rd_blpop_cmd()
         await self.rd_brpop_cmd()
         await self.rd_brpoplpush_cmd()
+        await self.rd_lindex_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -145,6 +146,28 @@ class RedisListCommands:
         logger.debug(frm.format([key1, key2, key3],
                                 ("{0}:{1}".format(res1_1, key1), "{1}:{0}".format(res1_2, key2)),
                                 ("{0}:{1}".format(res2_1, key3), "{1}:{0}".format(res2_2, key2))))
+
+    async def rd_lindex_cmd(self):
+        """
+        Returns the element at index index in the list stored at key.
+          The index is zero-based, so 0 means the first element,
+          1 the second element and so on. Negative indices can be used to
+          designate elements starting at the tail of the list.
+          Here, -1 means the last element, -2 means the penultimate and so forth.
+          When the value at key is not a list, an error is returned.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values_rpush = ('TEST1', 'TEST2', 'TEST3')
+        with await self.rd1 as conn:
+            await conn.rpush(key1, *values_rpush)
+            res1 = await conn.lindex(key1, 0)
+            res2 = await conn.lindex(key1, -1)
+            res3 = await conn.lindex(key1, 3)
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'LINDEX': KEY - {0}, IND_1 - {1}, IND_2 - {2}, IND_3 - {3}\n"
+        logger.debug(frm.format(key1, res1, res2, res3))
 
 
 def main():
