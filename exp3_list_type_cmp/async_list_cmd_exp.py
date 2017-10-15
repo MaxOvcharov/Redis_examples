@@ -3,13 +3,7 @@
     Simple example of Redis Generic commands using async lib - aioredis
 """
 import asyncio
-import aioredis
-import datetime as dt
 import os
-import random
-import string
-
-from random import choice
 
 from redis_client import rd_client_factory
 from settings import BASE_DIR, logger
@@ -39,6 +33,7 @@ class RedisListCommands:
         await self.rd_lset_cmd()
         await self.rd_ltrim_cmd()
         await self.rd_rpop_cmd()
+        await self.rd_rpoplpush_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -403,6 +398,33 @@ class RedisListCommands:
         frm = "LIST_CMD - 'RPOP': KEYS - {0}, RES_EXIST_LIST - {1}, " \
               "RES_EMPTY_LIST - {2}, RES_NOT_EXIST_LIST - {3}\n"
         logger.debug(frm.format([key1, key2], res1, res2, res3))
+
+    async def rd_rpoplpush_cmd(self):
+        """
+        Atomically returns and removes the last element (tail)
+          of the list stored at source, and pushes the element
+          at the first element (head) of the list stored at destination.
+          Executing RPOPLPUSH results in source holding a,b and
+          destination holding c,x,y,z. If source does not exist,
+          the value nil is returned and no operation is performed.
+          If source and destination are the same, the operation is
+          equivalent to removing the last element from the list and
+          pushing it as first element of the list, so it can be
+          considered as a list rotation command.
+
+        :return: None
+        """
+        key1, key2, key3 = 'key1', 'key2', 'key3'
+        values_rpush = ('TEST1', 'TEST2')
+        with await self.rd1 as conn:
+            await conn.rpush(key1, *values_rpush)
+            await conn.rpoplpush(key1, key2)
+            await conn.rpoplpush(key3, key2)
+            res1 = await conn.lrange(key1, 0, -1)
+            res2 = await conn.lrange(key2, 0, -1)
+            await conn.delete(key1, key2, key3)
+        frm = "LIST_CMD - 'RPOPLPUSH': KEYS - {0}, RPOP - {1}, RPOP_NOT_EXIST - {2}\n"
+        logger.debug(frm.format([key1, key2, key3], res1, res2))
 
 
 def main():
