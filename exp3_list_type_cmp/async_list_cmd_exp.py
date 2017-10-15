@@ -27,6 +27,7 @@ class RedisListCommands:
         await self.rd_rpushx_cmd()
         await self.rd_blpop_cmd()
         await self.rd_brpop_cmd()
+        await self.rd_brpoplpush_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -85,7 +86,7 @@ class RedisListCommands:
         :return: None
         """
         key1, key2 = 'key1', 'key2'
-        values_rpush = ('TEST1', 'TEST2)')
+        values_rpush = ('TEST1', 'TEST2')
         with await self.rd1 as conn:
             await conn.rpush(key1, *values_rpush)
             res1_1 = await conn.blpop(key1, timeout=1)
@@ -107,7 +108,7 @@ class RedisListCommands:
         :return: None
         """
         key1, key2 = 'key1', 'key2'
-        values_rpush = ('TEST1', 'TEST2)')
+        values_rpush = ('TEST1', 'TEST2')
         with await self.rd1 as conn:
             await conn.rpush(key1, *values_rpush)
             res1_1 = await conn.brpop(key1, timeout=1)
@@ -117,6 +118,33 @@ class RedisListCommands:
             await conn.delete(key1, key2)
         frm = "LIST_CMD - 'BRPOP': KEYS- {0}, RES - {1}\n"
         logger.debug(frm.format([key1, key2], (res1_1, res2_1, res1_2, res2_2)))
+
+    async def rd_brpoplpush_cmd(self):
+        """
+        BRPOPLPUSH is the blocking variant of RPOPLPUSH. When source contains
+          elements, this command behaves exactly like RPOPLPUSH. When used
+          inside a MULTI/EXEC block, this command behaves exactly like RPOPLPUSH.
+          When source is empty, Redis will block the connection until another
+          client pushes to it or until timeout is reached. A timeout of zero
+          can be used to block indefinitely.
+
+        :return: None
+        """
+        key1, key2, key3 = 'key1', 'key2', 'key3'
+        values_rpush = ('TEST1', 'TEST2')
+        with await self.rd1 as conn:
+            await conn.rpush(key1, *values_rpush)
+            await conn.brpoplpush(key1, key2, timeout=1)
+            await conn.brpoplpush(key3, key2, timeout=1)
+            res1_1 = await conn.lrange(key1, 0, -1)
+            res1_2 = await conn.lrange(key2, 0, -1)
+            res2_1 = await conn.lrange(key3, 0, -1)
+            res2_2 = await conn.lrange(key2, 0, -1)
+            await conn.delete(key1, key2, key3)
+        frm = "LIST_CMD - 'BRPOPLPUSH': RES_NOT_B - {1}, RES_B - {2}\n"
+        logger.debug(frm.format([key1, key2, key3],
+                                ("{0}:{1}".format(res1_1, key1), "{1}:{0}".format(res1_2, key2)),
+                                ("{0}:{1}".format(res2_1, key3), "{1}:{0}".format(res2_2, key2))))
 
 
 def main():
