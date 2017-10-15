@@ -23,12 +23,13 @@ class RedisListCommands:
         self.rd_conf = conf
 
     async def run_list_cmd(self):
-        await self.rd_rpush_cmd()
-        await self.rd_rpushx_cmd()
-        await self.rd_blpop_cmd()
-        await self.rd_brpop_cmd()
-        await self.rd_brpoplpush_cmd()
-        await self.rd_lindex_cmd()
+        # await self.rd_rpush_cmd()
+        # await self.rd_rpushx_cmd()
+        # await self.rd_blpop_cmd()
+        # await self.rd_brpop_cmd()
+        # await self.rd_brpoplpush_cmd()
+        # await self.rd_lindex_cmd()
+        await self.rd_linsert_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -168,6 +169,30 @@ class RedisListCommands:
             await conn.delete(key1)
         frm = "LIST_CMD - 'LINDEX': KEY - {0}, IND_1 - {1}, IND_2 - {2}, IND_3 - {3}\n"
         logger.debug(frm.format(key1, res1, res2, res3))
+
+    async def rd_linsert_cmd(self):
+        """
+        Inserts value in the list stored at key either before
+          or after the reference value pivot. When key does not exist,
+          it is considered an empty list and no operation is performed.
+          An error is returned when key exists but does not hold a list value.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values_rpush = 'TEST1'
+        with await self.rd1 as conn:
+            await conn.rpush(key1, values_rpush)
+            res0 = await conn.lrange(key1, 0, -1)
+            await conn.linsert(key1, 'TEST1', 'some', before=True)
+            res1 = await conn.lrange(key1, 0, -1)
+            await conn.linsert(key1, 'TEST1', 'text', before=False)
+            res2 = await conn.lrange(key1, 0, -1)
+            await conn.linsert(key1, 'TEST2', 'text', before=False)
+            res3 = await conn.lrange(key1, 0, -1)
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'LINSERT': K({0}), V - {1}, R_BEFORE - {2}, R_AFTER - {3}, NX_KEY - {4}\n"
+        logger.debug(frm.format(key1, res0, res1, res2, res3))
 
 
 def main():
