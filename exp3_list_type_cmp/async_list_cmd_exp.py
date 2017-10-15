@@ -31,6 +31,7 @@ class RedisListCommands:
         await self.rd_lindex_cmd()
         await self.rd_linsert_cmd()
         await self.rd_llen_cmd()
+        await self.rd_lpop_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -212,6 +213,24 @@ class RedisListCommands:
             await conn.delete(key1)
         frm = "LIST_CMD - 'LLEN': KEY - {0}, RES_EXIST_LIST - {1}, RES_NOT_EXIST_LIST - {2}\n"
         logger.debug(frm.format([key1, key2], res1, res2))
+
+    async def rd_lpop_cmd(self):
+        """
+        Removes and returns the first element of the list stored at key.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values_rpush = 'TEST1'
+        with await self.rd1 as conn:
+            await conn.rpush(key1, values_rpush)
+            res1 = await conn.lpop(key1)
+            res2 = await conn.lpop(key1)
+            res3 = await conn.lpop(key2)
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'LPOP': KEY - {0}, RES_EXIST_LIST - {1}, " \
+              "RES_EMPTY_LIST - {2}, RES_NOT_EXIST_LIST - {3}\n"
+        logger.debug(frm.format([key1, key2], res1, res2, res3))
 
 
 def main():
