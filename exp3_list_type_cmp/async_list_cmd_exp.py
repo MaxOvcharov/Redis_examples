@@ -36,6 +36,7 @@ class RedisListCommands:
         await self.rd_lpushx_cmd()
         await self.rd_lrange_cmd()
         await self.rd_lrem_cmd()
+        await self.rd_lset_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -331,6 +332,26 @@ class RedisListCommands:
             res2 = await conn.lrange(key1, 0, -1)
             await conn.delete(key1)
         frm = "LIST_CMD - 'LREM': KEY - {0}, BEFORE_REM - {1}, AFTER_REM - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_lset_cmd(self):
+        """
+        Sets the list element at index to value. For more
+          information on the index argument, see LINDEX.
+          An error is returned for out of range indexes.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values_rpush_multiple = ('A', 'B', 'C', 'D')
+        with await self.rd1 as conn:
+            await conn.rpush(key1, *values_rpush_multiple)
+            res1 = await conn.lrange(key1, 0, -1)
+            await conn.lset(key1, 0, 'Z')
+            await conn.lset(key1, -1, 'X')
+            res2 = await conn.lrange(key1, 0, -1)
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'LSET': KEY - {0}, BEFORE_SET - {1}, AFTER_SET - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
 
