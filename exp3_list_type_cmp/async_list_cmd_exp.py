@@ -25,6 +25,7 @@ class RedisListCommands:
     async def run_list_cmd(self):
         await self.rd_rpush_cmd()
         await self.rd_rpushx_cmd()
+        await self.rd_blpop_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -47,7 +48,7 @@ class RedisListCommands:
             push_index = await conn.rpush(key1, *values)
             res = await conn.lrange(key1, 0, -1)
             await conn.delete(key1)
-        frm = "GENERIC_CMD - 'RPUSH': KEY- {0}, INDEX_NUM- {1}, RES - {2}\n"
+        frm = "LIST_CMD - 'RPUSH': KEY- {0}, INDEX_NUM- {1}, RES - {2}\n"
         logger.debug(frm.format(key1, push_index, res))
 
     async def rd_rpushx_cmd(self):
@@ -68,9 +69,31 @@ class RedisListCommands:
             res1 = await conn.lrange(key1, 0, -1)
             res2 = await conn.lrange(key2, 0, -1)
             await conn.delete(key1, key2)
-        frm = "GENERIC_CMD - 'RPUSHX': KEYS- {0}, INDEX_EXIST- {1}, " \
+        frm = "LIST_CMD - 'RPUSHX': KEYS- {0}, INDEX_EXIST- {1}, " \
               "INDEX_NOT_EXIST- {2}, RES - {3}\n"
         logger.debug(frm.format([key1, key2], pushx_index1, pushx_index2, [res1, res2]))
+
+    async def rd_blpop_cmd(self):
+        """
+        BLPOP is a blocking list pop primitive. It is the blocking version
+          of LPOP because it blocks the connection when there are no
+          elements to pop from any of the given lists. An element is popped
+          from the head of the first list that is non-empty, with the given
+          keys being checked in the order that they are given.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values_rpush = ('TEST1', 'TEST2)')
+        with await self.rd1 as conn:
+            await conn.rpush(key1, *values_rpush)
+            res1_1 = await conn.blpop(key1, timeout=1)
+            res2_1 = await conn.blpop(key2, timeout=1)
+            res1_2 = await conn.blpop(key1, timeout=1)
+            res2_2 = await conn.blpop(key2, timeout=1)
+            await conn.delete(key1, key2)
+        frm = "LIST_CMD - 'BLPOP': KEYS- {0}, RES - {1}\n"
+        logger.debug(frm.format([key1, key2], (res1_1, res2_1, res1_2, res2_2)))
 
 
 def main():
