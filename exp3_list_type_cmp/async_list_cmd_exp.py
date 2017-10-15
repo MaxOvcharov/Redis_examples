@@ -33,6 +33,7 @@ class RedisListCommands:
         await self.rd_llen_cmd()
         await self.rd_lpop_cmd()
         await self.rd_lpush_cmd()
+        await self.rd_lpushx_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -249,16 +250,36 @@ class RedisListCommands:
         :return: None
         """
         key1, key2 = 'key1', 'key2'
-        values_rpush_single = 'TEST1'
-        values_rpush_multiple = ('TEST1', 'TEST2', 'TEST3')
+        values_lpush_single = 'TEST1'
+        values_lpush_multiple = ('TEST1', 'TEST2', 'TEST3')
         with await self.rd1 as conn:
-            await conn.rpush(key1, values_rpush_single)
-            await conn.rpush(key1, values_rpush_single)
-            await conn.rpush(key2, *values_rpush_multiple)
+            await conn.lpush(key1, values_lpush_single)
+            await conn.lpush(key1, values_lpush_single)
+            await conn.lpush(key2, *values_lpush_multiple)
             res1 = await conn.lrange(key1, 0, -1)
             res2 = await conn.lrange(key2, 0, -1)
             await conn.delete(key1, key2)
-        frm = "LIST_CMD - 'LPUSH': KEY - {0}, SIMPLE_PUSH - {1}, MULTIPLE_PUSH - {2}\n"
+        frm = "LIST_CMD - 'LPUSH': KEY - {0}, SIMPLE_LPUSH - {1}, MULTIPLE_LPUSH - {2}\n"
+        logger.debug(frm.format([key1, key2], res1, res2))
+
+    async def rd_lpushx_cmd(self):
+        """
+        Inserts value at the head of the list stored at key, only if key
+          already exists and holds a list. In contrary to LPUSH, no
+          operation will be performed when key does not yet exist.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values_lpush = 'TEST1'
+        with await self.rd1 as conn:
+            await conn.lpush(key1, values_lpush)
+            await conn.lpushx(key1, values_lpush)
+            await conn.lpushx(key2, values_lpush)
+            res1 = await conn.lrange(key1, 0, -1)
+            res2 = await conn.lrange(key2, 0, -1)
+            await conn.delete(key1, key2)
+        frm = "LIST_CMD - 'LPUSHX': KEY - {0}, LPUSHX_TRUE - {1}, LPUSHX_FALSE - {2}\n"
         logger.debug(frm.format([key1, key2], res1, res2))
 
 
