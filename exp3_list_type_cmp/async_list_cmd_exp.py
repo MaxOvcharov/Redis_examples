@@ -32,6 +32,7 @@ class RedisListCommands:
         await self.rd_linsert_cmd()
         await self.rd_llen_cmd()
         await self.rd_lpop_cmd()
+        await self.rd_lpush_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -231,6 +232,34 @@ class RedisListCommands:
         frm = "LIST_CMD - 'LPOP': KEY - {0}, RES_EXIST_LIST - {1}, " \
               "RES_EMPTY_LIST - {2}, RES_NOT_EXIST_LIST - {3}\n"
         logger.debug(frm.format([key1, key2], res1, res2, res3))
+
+    async def rd_lpush_cmd(self):
+        """
+        Insert all the specified values at the head of the list stored at key.
+          If key does not exist, it is created as empty list before performing
+          the push operations. When key holds a value that is not a list,
+          an error is returned.
+          It is possible to push multiple elements using a single command call
+          just specifying multiple arguments at the end of the command. Elements
+          are inserted one after the other to the head of the list, from the
+          leftmost element to the rightmost element. So for instance the command
+          LPUSH mylist a b c will result into a list containing c as first element,
+          b as second element and a as third element.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values_rpush_single = 'TEST1'
+        values_rpush_multiple = ('TEST1', 'TEST2', 'TEST3')
+        with await self.rd1 as conn:
+            await conn.rpush(key1, values_rpush_single)
+            await conn.rpush(key1, values_rpush_single)
+            await conn.rpush(key2, *values_rpush_multiple)
+            res1 = await conn.lrange(key1, 0, -1)
+            res2 = await conn.lrange(key2, 0, -1)
+            await conn.delete(key1, key2)
+        frm = "LIST_CMD - 'LPUSH': KEY - {0}, SIMPLE_PUSH - {1}, MULTIPLE_PUSH - {2}\n"
+        logger.debug(frm.format([key1, key2], res1, res2))
 
 
 def main():
