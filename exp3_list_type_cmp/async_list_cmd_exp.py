@@ -37,6 +37,7 @@ class RedisListCommands:
         await self.rd_lrange_cmd()
         await self.rd_lrem_cmd()
         await self.rd_lset_cmd()
+        await self.rd_ltrim_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -352,6 +353,36 @@ class RedisListCommands:
             res2 = await conn.lrange(key1, 0, -1)
             await conn.delete(key1)
         frm = "LIST_CMD - 'LSET': KEY - {0}, BEFORE_SET - {1}, AFTER_SET - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_ltrim_cmd(self):
+        """
+        Trim an existing list so that it will contain only the
+          specified range of elements specified. Both start and
+          stop are zero-based indexes, where 0 is the first
+          element of the list (the head), 1 the next element and so on.
+          For example: LTRIM foobar 0 2 will modify the list stored
+          at foobar so that only the first three elements of the
+          list will remain. Start and end can also be negative numbers
+          indicating offsets from the end of the list, where -1 is the
+          last element of the list, -2 the penultimate element and so on.
+          Out of range indexes will not produce an error: if start is
+          larger than the end of the list, or start > end, the result
+          will be an empty list (which causes key to be removed).
+          If end is larger than the end of the list, Redis will treat
+          it like the last element of the list.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values_rpush_multiple = ('A', 'B', 'C', 'D')
+        with await self.rd1 as conn:
+            await conn.rpush(key1, *values_rpush_multiple)
+            res1 = await conn.lrange(key1, 0, -1)
+            await conn.ltrim(key1, 1, -2)
+            res2 = await conn.lrange(key1, 0, -1)
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'LTRIM': KEY - {0}, BEFORE_TRIM - {1}, AFTER_TRIM - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
 
