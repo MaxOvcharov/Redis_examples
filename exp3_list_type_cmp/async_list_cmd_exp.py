@@ -34,6 +34,7 @@ class RedisListCommands:
         await self.rd_lpop_cmd()
         await self.rd_lpush_cmd()
         await self.rd_lpushx_cmd()
+        await self.rd_lrange_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -213,7 +214,7 @@ class RedisListCommands:
             res1 = await conn.llen(key1)
             res2 = await conn.llen(key2)
             await conn.delete(key1)
-        frm = "LIST_CMD - 'LLEN': KEY - {0}, RES_EXIST_LIST - {1}, RES_NOT_EXIST_LIST - {2}\n"
+        frm = "LIST_CMD - 'LLEN': KEYS - {0}, RES_EXIST_LIST - {1}, RES_NOT_EXIST_LIST - {2}\n"
         logger.debug(frm.format([key1, key2], res1, res2))
 
     async def rd_lpop_cmd(self):
@@ -230,7 +231,7 @@ class RedisListCommands:
             res2 = await conn.lpop(key1)
             res3 = await conn.lpop(key2)
             await conn.delete(key1)
-        frm = "LIST_CMD - 'LPOP': KEY - {0}, RES_EXIST_LIST - {1}, " \
+        frm = "LIST_CMD - 'LPOP': KEYS - {0}, RES_EXIST_LIST - {1}, " \
               "RES_EMPTY_LIST - {2}, RES_NOT_EXIST_LIST - {3}\n"
         logger.debug(frm.format([key1, key2], res1, res2, res3))
 
@@ -259,7 +260,7 @@ class RedisListCommands:
             res1 = await conn.lrange(key1, 0, -1)
             res2 = await conn.lrange(key2, 0, -1)
             await conn.delete(key1, key2)
-        frm = "LIST_CMD - 'LPUSH': KEY - {0}, SIMPLE_LPUSH - {1}, MULTIPLE_LPUSH - {2}\n"
+        frm = "LIST_CMD - 'LPUSH': KEYS - {0}, SIMPLE_LPUSH - {1}, MULTIPLE_LPUSH - {2}\n"
         logger.debug(frm.format([key1, key2], res1, res2))
 
     async def rd_lpushx_cmd(self):
@@ -279,8 +280,32 @@ class RedisListCommands:
             res1 = await conn.lrange(key1, 0, -1)
             res2 = await conn.lrange(key2, 0, -1)
             await conn.delete(key1, key2)
-        frm = "LIST_CMD - 'LPUSHX': KEY - {0}, LPUSHX_TRUE - {1}, LPUSHX_FALSE - {2}\n"
+        frm = "LIST_CMD - 'LPUSHX': KEYS - {0}, LPUSHX_TRUE - {1}, LPUSHX_FALSE - {2}\n"
         logger.debug(frm.format([key1, key2], res1, res2))
+
+    async def rd_lrange_cmd(self):
+        """
+        Returns the specified elements of the list stored at key.
+          The offsets start and stop are zero-based indexes, with 0
+          being the first element of the list (the head of the list),
+          1 being the next element and so on.
+          These offsets can also be negative numbers indicating offsets
+          starting at the end of the list. For example, -1 is the last
+          element of the list, -2 the penultimate, and so on.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values_lpush_multiple = ('TEST1', 'TEST2', 'TEST3')
+        with await self.rd1 as conn:
+            await conn.lpush(key1, *values_lpush_multiple)
+            res1 = await conn.lrange(key1, 1, -1)
+            res2 = await conn.lrange(key2, 0, -1)
+            res3 = await conn.lrange(key1, 2, 1000)
+            await conn.delete(key1, key2)
+        frm = "LIST_CMD - 'LRANGE': KEYS - {0}, EXIST_LIST - {1}," \
+              " NOT_EXIST_LIST - {2}, OUT_OF_RANGE - {3} \n"
+        logger.debug(frm.format([key1, key2], res1, res2, res3))
 
 
 def main():
