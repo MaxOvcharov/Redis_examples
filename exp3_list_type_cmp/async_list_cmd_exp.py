@@ -26,6 +26,7 @@ class RedisListCommands:
         await self.rd_rpush_cmd()
         await self.rd_rpushx_cmd()
         await self.rd_blpop_cmd()
+        await self.rd_brpop_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -93,6 +94,28 @@ class RedisListCommands:
             res2_2 = await conn.blpop(key2, timeout=1)
             await conn.delete(key1, key2)
         frm = "LIST_CMD - 'BLPOP': KEYS- {0}, RES - {1}\n"
+        logger.debug(frm.format([key1, key2], (res1_1, res2_1, res1_2, res2_2)))
+
+    async def rd_brpop_cmd(self):
+        """
+        BRPOP is a blocking list pop primitive. It is the blocking version of
+          RPOP because it blocks the connection when there are no elements to
+          pop from any of the given lists. An element is popped from the tail
+          of the first list that is non-empty, with the given keys being
+          checked in the order that they are given.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values_rpush = ('TEST1', 'TEST2)')
+        with await self.rd1 as conn:
+            await conn.rpush(key1, *values_rpush)
+            res1_1 = await conn.brpop(key1, timeout=1)
+            res2_1 = await conn.brpop(key2, timeout=1)
+            res1_2 = await conn.brpop(key1, timeout=1)
+            res2_2 = await conn.brpop(key2, timeout=1)
+            await conn.delete(key1, key2)
+        frm = "LIST_CMD - 'BRPOP': KEYS- {0}, RES - {1}\n"
         logger.debug(frm.format([key1, key2], (res1_1, res2_1, res1_2, res2_2)))
 
 
