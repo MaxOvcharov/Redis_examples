@@ -23,13 +23,14 @@ class RedisListCommands:
         self.rd_conf = conf
 
     async def run_list_cmd(self):
-        # await self.rd_rpush_cmd()
-        # await self.rd_rpushx_cmd()
-        # await self.rd_blpop_cmd()
-        # await self.rd_brpop_cmd()
-        # await self.rd_brpoplpush_cmd()
-        # await self.rd_lindex_cmd()
+        await self.rd_rpush_cmd()
+        await self.rd_rpushx_cmd()
+        await self.rd_blpop_cmd()
+        await self.rd_brpop_cmd()
+        await self.rd_brpoplpush_cmd()
+        await self.rd_lindex_cmd()
         await self.rd_linsert_cmd()
+        await self.rd_llen_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -193,6 +194,24 @@ class RedisListCommands:
             await conn.delete(key1)
         frm = "LIST_CMD - 'LINSERT': K({0}), V - {1}, R_BEFORE - {2}, R_AFTER - {3}, NX_KEY - {4}\n"
         logger.debug(frm.format(key1, res0, res1, res2, res3))
+
+    async def rd_llen_cmd(self):
+        """
+        Returns the length of the list stored at key. If key does
+          not exist, it is interpreted as an empty list and 0 is returned.
+          An error is returned when the value stored at key is not a list.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values_rpush = ('TEST1', 'TEST2', 'TEST3')
+        with await self.rd1 as conn:
+            await conn.rpush(key1, *values_rpush)
+            res1 = await conn.llen(key1)
+            res2 = await conn.llen(key2)
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'LLEN': KEY - {0}, RES_EXIST_LIST - {1}, RES_NOT_EXIST_LIST - {2}\n"
+        logger.debug(frm.format([key1, key2], res1, res2))
 
 
 def main():
