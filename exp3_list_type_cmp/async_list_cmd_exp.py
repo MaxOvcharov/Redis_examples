@@ -38,6 +38,7 @@ class RedisListCommands:
         await self.rd_lrem_cmd()
         await self.rd_lset_cmd()
         await self.rd_ltrim_cmd()
+        await self.rd_rpop_cmd()
 
     async def rd_rpush_cmd(self):
         """
@@ -384,6 +385,24 @@ class RedisListCommands:
             await conn.delete(key1)
         frm = "LIST_CMD - 'LTRIM': KEY - {0}, BEFORE_TRIM - {1}, AFTER_TRIM - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_rpop_cmd(self):
+        """
+        Removes and returns the last element of the list stored at key.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values_rpush = 'TEST1'
+        with await self.rd1 as conn:
+            await conn.rpush(key1, values_rpush)
+            res1 = await conn.rpop(key1)
+            res2 = await conn.rpop(key1)
+            res3 = await conn.rpop(key2)
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'RPOP': KEYS - {0}, RES_EXIST_LIST - {1}, " \
+              "RES_EMPTY_LIST - {2}, RES_NOT_EXIST_LIST - {3}\n"
+        logger.debug(frm.format([key1, key2], res1, res2, res3))
 
 
 def main():
