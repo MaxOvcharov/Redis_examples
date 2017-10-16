@@ -17,7 +17,28 @@ class RedisHashCommands:
         self.rd_conf = conf
 
     async def run_list_cmd(self):
-        pass
+        await self.rd_hset_cmd()
+
+    async def rd_hset_cmd(self):
+        """
+        Sets field in the hash stored at key to value. If key does not exist,
+          a new key holding a hash is created. If field already exists in
+          the hash, it is overwritten.
+
+        :return: None
+        """
+        key1 = 'key1'
+        field1, field2 = 'f1', 'f2'
+        value1, value2 = 'TEST1', 'TEST2'
+        with await self.rd1 as conn:
+            await conn.hset(key1, field1, value1)
+            await conn.hset(key1, field2, value2)
+            res1 = await conn.hgetall(key1)
+            await conn.hset(key1, field2, value1)
+            res2 = await conn.hgetall(key1)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HSET': KEY- {0}, INSERT_DATA- {1}, UPDATE_DATA - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
 
 
 def main():
