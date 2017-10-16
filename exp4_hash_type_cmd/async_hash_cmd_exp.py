@@ -5,6 +5,8 @@
 import asyncio
 import os
 
+from itertools import chain
+
 from redis_client import rd_client_factory
 from settings import BASE_DIR, logger
 from utils import load_config
@@ -18,6 +20,7 @@ class RedisHashCommands:
 
     async def run_list_cmd(self):
         await self.rd_hset_cmd()
+        await self.rd_hdel_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -39,6 +42,31 @@ class RedisHashCommands:
             await conn.delete(key1)
         frm = "HASH_CMD - 'HSET': KEY- {0}, INSERT_DATA- {1}, UPDATE_DATA - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_hdel_cmd(self):
+        """
+        Removes the specified fields from the hash stored at key.
+          Specified fields that do not exist within this hash are
+          ignored. If key does not exist, it is treated as an
+          empty hash and this command returns 0.
+
+        :return: None
+        """
+        key1 = 'key1'
+        fields = ('f1', 'f2', 'f3')
+        values = ('TEST1', 'TEST2', 'TEST3')
+        pairs = list(chain(*zip(fields, values)))
+        with await self.rd1 as conn:
+            await conn.hmset(key1, *pairs)
+            res_1 = await conn.hdel(key1, fields[0])
+            res1 = await conn.hgetall(key1)
+            res_2 = await conn.hdel(key1, *fields[1:])
+            res2 = await conn.hgetall(key1)
+            res_3 = await conn.hdel(key1, *fields[1:])
+            res3 = await conn.hgetall(key1)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HDEL': KEY- {0}, DEL_PART - {1}, DEL_ALL - {2}, DEL_EMPTY - {3}\n"
+        logger.debug(frm.format(key1, (res1, res_1), (res2, res_2), (res3, res_3)))
 
 
 def main():
