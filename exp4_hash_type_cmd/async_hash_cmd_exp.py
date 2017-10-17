@@ -21,6 +21,7 @@ class RedisHashCommands:
     async def run_list_cmd(self):
         await self.rd_hset_cmd()
         await self.rd_hdel_cmd()
+        await self.rd_hexists_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -67,6 +68,24 @@ class RedisHashCommands:
             await conn.delete(key1)
         frm = "HASH_CMD - 'HDEL': KEY- {0}, DEL_PART - {1}, DEL_ALL - {2}, DEL_EMPTY - {3}\n"
         logger.debug(frm.format(key1, (res1, res_1), (res2, res_2), (res3, res_3)))
+
+    async def rd_hexists_cmd(self):
+        """
+        Returns if field is an existing field in the hash stored at key.
+          Return value:
+            1 if the hash contains field.
+            0 if the hash does not contain field, or key does not exist.
+
+        :return: None
+        """
+        key1, field, value = 'key1', ['f1', 'f2'], 'TEST1'
+        with await self.rd1 as conn:
+            await conn.hset(key1, field[0], value)
+            res1 = await conn.hexists(key1, field[0])
+            res2 = await conn.hexists(key1, field[1])
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HEXISTS': KEY- {0}, EXIST_FIELD - {1}, NOT_EXIST_FIELD - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
 
 
 def main():
