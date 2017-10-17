@@ -23,6 +23,7 @@ class RedisHashCommands:
         await self.rd_hdel_cmd()
         await self.rd_hexists_cmd()
         await self.rd_hget_cmd()
+        await self.rd_hgetall_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -104,6 +105,30 @@ class RedisHashCommands:
             res2 = await conn.hget(key1, field[1])
             await conn.delete(key1)
         frm = "HASH_CMD - 'HGET': KEY- {0}, EXIST_FIELD - {1}, NOT_EXIST_FIELD - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_hgetall_cmd(self):
+        """
+        Returns all fields and values of the hash stored at key.
+          In the returned value, every field name is followed by
+          its value, so the length of the reply is twice the
+          size of the hash.
+          Return value:
+            - Array reply: list of fields and their values stored in the hash
+            - An empty list when key does not exist.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        fields = ('f1', 'f2')
+        values = ('TEST1', 'TEST2')
+        pairs = list(chain(*zip(fields, values)))
+        with await self.rd1 as conn:
+            await conn.hmset(key1, *pairs)
+            res1 = await conn.hgetall(key1)
+            res2 = await conn.hgetall(key2)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HGETALL': KEY- {0}, EXIST_FIELDS - {1}, NOT_EXIST_FIELDS - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
 
