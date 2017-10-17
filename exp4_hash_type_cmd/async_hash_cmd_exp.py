@@ -22,6 +22,7 @@ class RedisHashCommands:
         await self.rd_hset_cmd()
         await self.rd_hdel_cmd()
         await self.rd_hexists_cmd()
+        await self.rd_hget_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -73,8 +74,8 @@ class RedisHashCommands:
         """
         Returns if field is an existing field in the hash stored at key.
           Return value:
-            1 if the hash contains field.
-            0 if the hash does not contain field, or key does not exist.
+            - True - if the hash contains field.
+            - False - if the hash does not contain field, or key does not exist.
 
         :return: None
         """
@@ -85,6 +86,24 @@ class RedisHashCommands:
             res2 = await conn.hexists(key1, field[1])
             await conn.delete(key1)
         frm = "HASH_CMD - 'HEXISTS': KEY- {0}, EXIST_FIELD - {1}, NOT_EXIST_FIELD - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_hget_cmd(self):
+        """
+        Returns the value associated with field in the hash stored at key.
+          Return value:
+            - the value associated with field,
+            - None when field is not present in the hash or key does not exist.
+
+        :return: None
+        """
+        key1, field, value = 'key1', ['f1', 'f2'], 'TEST1'
+        with await self.rd1 as conn:
+            await conn.hset(key1, field[0], value)
+            res1 = await conn.hget(key1, field[0])
+            res2 = await conn.hget(key1, field[1])
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HGET': KEY- {0}, EXIST_FIELD - {1}, NOT_EXIST_FIELD - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
 
