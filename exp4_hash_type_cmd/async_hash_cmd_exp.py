@@ -26,6 +26,7 @@ class RedisHashCommands:
         await self.rd_hgetall_cmd()
         await self.rd_hincrby_cmd()
         await self.rd_hincrbyfloat_cmd()
+        await self.rd_hkeys_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -184,6 +185,27 @@ class RedisHashCommands:
         frm = "HASH_CMD - 'HINCRBYFLOAT': K- {0}, V- {1}, " \
               "INCR(1.5) - {2}, INCR(-6) - {3}, INCR_NX(6) - {4}\n"
         logger.debug(frm.format(key1, value1, res1, res2, res3))
+
+    async def rd_hkeys_cmd(self):
+        """
+        Returns all field names in the hash stored at key.
+          Array reply:
+          list of fields in the hash, or an empty list when
+          key does not exist.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        fields = ('f1', 'f2', 'f3')
+        values = ('TEST1', 'TEST2', 'TEST3')
+        pairs = list(chain(*zip(fields, values)))
+        with await self.rd1 as conn:
+            await conn.hmset(key1, *pairs)
+            res1 = await conn.hkeys(key1)
+            res2 = await conn.hkeys(key2)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HKEYS': KEY- {0}, EXIST_KEY - {1}, NOT_EXIST_KEY - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
 
 
 def main():
