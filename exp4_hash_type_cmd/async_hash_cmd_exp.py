@@ -24,6 +24,7 @@ class RedisHashCommands:
         await self.rd_hexists_cmd()
         await self.rd_hget_cmd()
         await self.rd_hgetall_cmd()
+        await self.rd_hincrby_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -130,6 +131,29 @@ class RedisHashCommands:
             await conn.delete(key1)
         frm = "HASH_CMD - 'HGETALL': KEY- {0}, EXIST_FIELDS - {1}, NOT_EXIST_FIELDS - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_hincrby_cmd(self):
+        """
+        Increments the number stored at field in the hash stored at
+          key by increment. If key does not exist, a new key holding
+          a hash is created. If field does not exist the value is set
+          to 0 before the operation is performed.
+          The range of values supported by HINCRBY is limited to 64
+          bit signed integers.
+
+        :return: None
+        """
+        key1 = 'key1'
+        field1, field2 = 'f1', 'f2'
+        value1 = '5'
+        with await self.rd1 as conn:
+            await conn.hset(key1, field1, value1)
+            res1 = await conn.hincrby(key1, field1, 1)
+            res2 = await conn.hincrby(key1, field1, -6)
+            res3 = await conn.hincrby(key1, field2, 6)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HINCRBY': K- {0}, V- {1}, INCR(1) - {2}, INCR(-6) - {3}, INCR_NX- {3}\n"
+        logger.debug(frm.format(key1, value1, res1, res2, res3))
 
 
 def main():
