@@ -25,6 +25,7 @@ class RedisHashCommands:
         await self.rd_hget_cmd()
         await self.rd_hgetall_cmd()
         await self.rd_hincrby_cmd()
+        await self.rd_hincrbyfloat_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -152,7 +153,36 @@ class RedisHashCommands:
             res2 = await conn.hincrby(key1, field1, -6)
             res3 = await conn.hincrby(key1, field2, 6)
             await conn.delete(key1)
-        frm = "HASH_CMD - 'HINCRBY': K- {0}, V- {1}, INCR(1) - {2}, INCR(-6) - {3}, INCR_NX- {3}\n"
+        frm = "HASH_CMD - 'HINCRBY': K- {0}, V- {1}, " \
+              "INCR(1) - {2}, INCR(-6) - {3}, INCR_NX(6)- {4}\n"
+        logger.debug(frm.format(key1, value1, res1, res2, res3))
+
+    async def rd_hincrbyfloat_cmd(self):
+        """
+        Increment the specified field of a hash stored at key,
+          and representing a floating point number, by the
+          specified increment. If the increment value is negative,
+          the result is to have the hash field value decremented
+          instead of incremented. If the field does not exist, it
+          is set to 0 before performing the operation. An error
+          is returned if one of the following conditions occur:
+          The field contains a value of the wrong type (not a string).
+          The current field content or the specified increment
+          are not parsable as a double precision floating point number.
+
+        :return: None
+        """
+        key1 = 'key1'
+        field1, field2 = 'f1', 'f2'
+        value1 = '5.0'
+        with await self.rd1 as conn:
+            await conn.hset(key1, field1, value1)
+            res1 = await conn.hincrbyfloat(key1, field1, 1.5)
+            res2 = await conn.hincrbyfloat(key1, field1, -6)
+            res3 = await conn.hincrbyfloat(key1, field2, 6)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HINCRBYFLOAT': K- {0}, V- {1}, " \
+              "INCR(1.5) - {2}, INCR(-6) - {3}, INCR_NX(6) - {4}\n"
         logger.debug(frm.format(key1, value1, res1, res2, res3))
 
 
