@@ -27,6 +27,7 @@ class RedisHashCommands:
         await self.rd_hincrby_cmd()
         await self.rd_hincrbyfloat_cmd()
         await self.rd_hkeys_cmd()
+        await self.rd_hlen_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -205,6 +206,27 @@ class RedisHashCommands:
             res2 = await conn.hkeys(key2)
             await conn.delete(key1)
         frm = "HASH_CMD - 'HKEYS': KEY- {0}, EXIST_KEY - {1}, NOT_EXIST_KEY - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_hlen_cmd(self):
+        """
+        Returns the number of fields contained in the hash stored at key.
+          Integer reply:
+          - number of fields in the hash
+          - 0 when key does not exist.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        fields = ('f1', 'f2', 'f3')
+        values = ('TEST1', 'TEST2', 'TEST3')
+        pairs = list(chain(*zip(fields, values)))
+        with await self.rd1 as conn:
+            await conn.hmset(key1, *pairs)
+            res1 = await conn.hlen(key1)
+            res2 = await conn.hlen(key2)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HLEN': KEY- {0}, EXIST_KEY_LEN - {1}, NOT_EXIST_KEY_LEN - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
 
