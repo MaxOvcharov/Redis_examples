@@ -29,6 +29,7 @@ class RedisHashCommands:
         await self.rd_hkeys_cmd()
         await self.rd_hlen_cmd()
         await self.rd_hmget_cmd()
+        await self.rd_hmset_dict_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -254,6 +255,32 @@ class RedisHashCommands:
             res1 = await conn.hmget(key1, *fields)
             await conn.delete(key1)
         frm = "HASH_CMD - 'HMGET': KEY- {0}, HMGET_VALUE - {1}\n"
+        logger.debug(frm.format(key1, res1))
+
+    async def rd_hmset_dict_cmd(self):
+        """
+        Returns the values associated with the specified
+          fields in the hash stored at key. For every
+          field that does not exist in the hash, a nil
+          value is returned. Because a non-existing keys
+          are treated as empty hashes, running HMGET
+          against a non-existing key will return a
+          list of nil values.
+          Return value:
+            list of values associated with the given fields,
+            in the same order as they are requested.
+
+        :return: None
+        """
+        key1 = 'key1'
+        fields = ('f1', 'f2', 'f3')
+        values = ('TEST1', 'TEST2', 'TEST3')
+        pairs = dict(zip(fields, values))
+        with await self.rd1 as conn:
+            await conn.hmset_dict(key1, pairs)
+            res1 = await conn.hmget(key1, *fields)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HMSET_DICT': KEY- {0}, HMSET_VALUE_RES - {1}\n"
         logger.debug(frm.format(key1, res1))
 
 
