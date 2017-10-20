@@ -31,6 +31,7 @@ class RedisHashCommands:
         await self.rd_hmget_cmd()
         await self.rd_hmset_dict_cmd()
         await self.rd_hsetnx_cmd()
+        await self.rd_hvals_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -291,8 +292,8 @@ class RedisHashCommands:
           not exist, a new key holding a hash is created.
           If field already exists, this operation has no effect.
           Return value:
-            1 if field is a new field in the hash and value was set.
-            0 if field already exists in the hash and no operation
+          - 1 if field is a new field in the hash and value was set.
+          - 0 if field already exists in the hash and no operation
             was performed.
 
         :return: None
@@ -307,6 +308,27 @@ class RedisHashCommands:
             res2 = await conn.hsetnx(key1, 'f4', 'TEST4')
             await conn.delete(key1)
         frm = "HASH_CMD - 'HSETNX': KEY- {0}, EXIST_FIELD - {1}, NOT_EXIST_FIELD - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_hvals_cmd(self):
+        """
+        Returns all values in the hash stored at key.
+          Return value:
+          - list of values in the hash
+          - an empty list when key does not exist.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        fields = ('f1', 'f2', 'f3')
+        values = ('TEST1', 'TEST2', 'TEST3')
+        pairs = dict(zip(fields, values))
+        with await self.rd1 as conn:
+            await conn.hmset_dict(key1, pairs)
+            res1 = await conn.hvals(key1)
+            res2 = await conn.hvals(key2)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HVALS': KEY- {0}, EXIST_KEY - {1}, NOT_EXIST_KEY - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
 
