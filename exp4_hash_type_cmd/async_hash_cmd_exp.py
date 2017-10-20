@@ -6,6 +6,7 @@ import asyncio
 import os
 
 from itertools import chain
+from random import choice
 
 from redis_client import rd_client_factory
 from settings import BASE_DIR, logger
@@ -32,6 +33,7 @@ class RedisHashCommands:
         await self.rd_hmset_dict_cmd()
         await self.rd_hsetnx_cmd()
         await self.rd_hvals_cmd()
+        await self.rd_hscan_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -330,6 +332,33 @@ class RedisHashCommands:
             await conn.delete(key1)
         frm = "HASH_CMD - 'HVALS': KEY- {0}, EXIST_KEY - {1}, NOT_EXIST_KEY - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_hscan_cmd(self):
+        """
+        SCAN is a cursor based iterator. This means that at
+          every call of the command, the server returns an
+          updated cursor that the user needs to use as the
+          cursor argument in the next call. An iteration
+          starts when the cursor is set to 0, and terminates
+          when the cursor returned by the server is 0.
+
+        :return: None
+        """
+        key1 = 'key1'
+        fields_tmp = ('f%s', 'F%s', 'test%s')
+        values_tmp = ('TEST%s', 'test%s', 't%s')
+        pairs = {choice(fields_tmp) % i: choice(values_tmp) % i for i in range(1, 5)}
+        match = b'test*'
+        cur = b'0'
+        matched_keys = []
+        with await self.rd1 as conn:
+            await conn.hmset_dict(key1, pairs)
+            while cur:
+                cur, keys = await conn.hscan(key1, cur, match=match)
+                matched_keys.extend(keys)
+            await conn.flushdb()
+        frm = "HASH_CMD - 'HSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
+        logger.debug(frm.format(key1, match, len(matched_keys)))
 
 
 def main():
