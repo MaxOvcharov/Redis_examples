@@ -30,6 +30,7 @@ class RedisHashCommands:
         await self.rd_hlen_cmd()
         await self.rd_hmget_cmd()
         await self.rd_hmset_dict_cmd()
+        await self.rd_hsetnx_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -282,6 +283,31 @@ class RedisHashCommands:
             await conn.delete(key1)
         frm = "HASH_CMD - 'HMSET_DICT': KEY- {0}, HMSET_VALUE_RES - {1}\n"
         logger.debug(frm.format(key1, res1))
+
+    async def rd_hsetnx_cmd(self):
+        """
+        Sets field in the hash stored at key to value,
+          only if field does not yet exist. If key does
+          not exist, a new key holding a hash is created.
+          If field already exists, this operation has no effect.
+          Return value:
+            1 if field is a new field in the hash and value was set.
+            0 if field already exists in the hash and no operation
+            was performed.
+
+        :return: None
+        """
+        key1 = 'key1'
+        fields = ('f1', 'f2', 'f3')
+        values = ('TEST1', 'TEST2', 'TEST3')
+        pairs = dict(zip(fields, values))
+        with await self.rd1 as conn:
+            await conn.hmset_dict(key1, pairs)
+            res1 = await conn.hsetnx(key1, fields[0], values[0])
+            res2 = await conn.hsetnx(key1, 'f4', 'TEST4')
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HSETNX': KEY- {0}, EXIST_FIELD - {1}, NOT_EXIST_FIELD - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
 
 
 def main():
