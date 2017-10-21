@@ -20,21 +20,22 @@ class RedisHashCommands:
         self.rd_conf = conf
 
     async def run_list_cmd(self):
-        # await self.rd_hset_cmd()
-        # await self.rd_hdel_cmd()
-        # await self.rd_hexists_cmd()
-        # await self.rd_hget_cmd()
-        # await self.rd_hgetall_cmd()
-        # await self.rd_hincrby_cmd()
-        # await self.rd_hincrbyfloat_cmd()
-        # await self.rd_hkeys_cmd()
-        # await self.rd_hlen_cmd()
-        # await self.rd_hmget_cmd()
-        # await self.rd_hmset_dict_cmd()
-        # await self.rd_hsetnx_cmd()
-        # await self.rd_hvals_cmd()
-        # await self.rd_hscan_cmd()
+        await self.rd_hset_cmd()
+        await self.rd_hdel_cmd()
+        await self.rd_hexists_cmd()
+        await self.rd_hget_cmd()
+        await self.rd_hgetall_cmd()
+        await self.rd_hincrby_cmd()
+        await self.rd_hincrbyfloat_cmd()
+        await self.rd_hkeys_cmd()
+        await self.rd_hlen_cmd()
+        await self.rd_hmget_cmd()
+        await self.rd_hmset_dict_cmd()
+        await self.rd_hsetnx_cmd()
+        await self.rd_hvals_cmd()
+        await self.rd_hscan_cmd()
         await self.rd_ihscan_cmd()
+        await self.rd_hstrlen_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -380,6 +381,32 @@ class RedisHashCommands:
             await conn.flushdb()
         frm = "HASH_CMD - 'IHSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
         logger.debug(frm.format(key1, match, len(matched_keys)))
+
+    async def rd_hstrlen_cmd(self):
+        """
+        Returns the string length of the value associated with
+          field in the hash stored at key. If the key or
+          the field do not exist, 0 is returned.
+          Return value:
+          - the string length of the value associated with field
+          - zero when field is not present in the hash or key
+          does not exist at all.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        fields = ('f1', 'f2', 'f3')
+        values = ('TEST1', 't1', 'test')
+        pairs = list(chain(*zip(fields, values)))
+        with await self.rd1 as conn:
+            await conn.hmset(key1, *pairs)
+            res1 = await conn.hstrlen(key1, fields[0])
+            res2 = await conn.hstrlen(key2, fields[0])
+            res3 = await conn.hstrlen(key1, 'f4')
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'HSTRLEN': KEY- {0}, EXIST_KEY - {1}," \
+              " NOT_EXIST_KEY - {2}, NOT_EXIST_FIELD - {3}\n"
+        logger.debug(frm.format((key1, key2), res1, res2, res3))
 
 
 def main():
