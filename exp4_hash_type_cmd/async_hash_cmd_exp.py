@@ -20,20 +20,21 @@ class RedisHashCommands:
         self.rd_conf = conf
 
     async def run_list_cmd(self):
-        await self.rd_hset_cmd()
-        await self.rd_hdel_cmd()
-        await self.rd_hexists_cmd()
-        await self.rd_hget_cmd()
-        await self.rd_hgetall_cmd()
-        await self.rd_hincrby_cmd()
-        await self.rd_hincrbyfloat_cmd()
-        await self.rd_hkeys_cmd()
-        await self.rd_hlen_cmd()
-        await self.rd_hmget_cmd()
-        await self.rd_hmset_dict_cmd()
-        await self.rd_hsetnx_cmd()
-        await self.rd_hvals_cmd()
-        await self.rd_hscan_cmd()
+        # await self.rd_hset_cmd()
+        # await self.rd_hdel_cmd()
+        # await self.rd_hexists_cmd()
+        # await self.rd_hget_cmd()
+        # await self.rd_hgetall_cmd()
+        # await self.rd_hincrby_cmd()
+        # await self.rd_hincrbyfloat_cmd()
+        # await self.rd_hkeys_cmd()
+        # await self.rd_hlen_cmd()
+        # await self.rd_hmget_cmd()
+        # await self.rd_hmset_dict_cmd()
+        # await self.rd_hsetnx_cmd()
+        # await self.rd_hvals_cmd()
+        # await self.rd_hscan_cmd()
+        await self.rd_ihscan_cmd()
 
     async def rd_hset_cmd(self):
         """
@@ -358,6 +359,26 @@ class RedisHashCommands:
                 matched_keys.extend(keys)
             await conn.flushdb()
         frm = "HASH_CMD - 'HSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
+        logger.debug(frm.format(key1, match, len(matched_keys)))
+
+    async def rd_ihscan_cmd(self):
+        """
+        Incrementally iterate the keys space using async for
+
+        :return: None
+        """
+        key1 = 'key1'
+        fields_tmp = ('f%s', 'F%s', 'test%s')
+        values_tmp = ('TEST%s', 'test%s', 't%s')
+        pairs = {choice(fields_tmp) % i: choice(values_tmp) % i for i in range(1, 5)}
+        match = b'test*'
+        matched_keys = []
+        with await self.rd1 as conn:
+            await conn.hmset_dict(key1, pairs)
+            async for key in conn.ihscan(key1, match=match):
+                matched_keys.extend(key)
+            await conn.flushdb()
+        frm = "HASH_CMD - 'IHSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
         logger.debug(frm.format(key1, match, len(matched_keys)))
 
 
