@@ -17,7 +17,29 @@ class RedisSetCommands:
         self.rd_conf = conf
 
     async def run_list_cmd(self):
-        pass
+        await self.rd_sadd_cmd()
+
+    async def rd_sadd_cmd(self):
+        """
+        Add the specified members to the set stored at key.
+          Specified members that are already a member of
+          this set are ignored. If key does not exist, a
+          new set is created before adding the specified members.
+          An error is returned when the value stored at key is not a set.
+          Return value:
+          - the number of elements that were added to the set,
+          not including all the elements already present into the set.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values1, values2 = ['TEST1', 'TEST2', 'TEST1'], 'TEST1'
+        with await self.rd1 as conn:
+            res1 = await conn.sadd(key1, *values1)
+            res2 = await conn.sadd(key2, values2)
+            await conn.delete(key1, key2)
+        frm = "HASH_CMD - 'SADD': KEY- {0}, SOME_VALUE - {1}, ONE_VALUE - {2}\n"
+        logger.debug(frm.format((key1, key2), res1, res2))
 
 
 def main():
