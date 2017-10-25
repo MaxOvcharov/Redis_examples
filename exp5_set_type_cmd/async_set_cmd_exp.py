@@ -18,6 +18,7 @@ class RedisSetCommands:
 
     async def run_list_cmd(self):
         await self.rd_sadd_cmd()
+        await self.rd_scard_cmd()
 
     async def rd_sadd_cmd(self):
         """
@@ -33,12 +34,33 @@ class RedisSetCommands:
         :return: None
         """
         key1, key2 = 'key1', 'key2'
-        values1, values2 = ['TEST1', 'TEST2', 'TEST1'], 'TEST1'
+        values1, values2 = ('TEST1', 'TEST2', 'TEST1'), 'TEST1'
         with await self.rd1 as conn:
             res1 = await conn.sadd(key1, *values1)
             res2 = await conn.sadd(key2, values2)
             await conn.delete(key1, key2)
         frm = "HASH_CMD - 'SADD': KEY- {0}, SOME_VALUE - {1}, ONE_VALUE - {2}\n"
+        logger.debug(frm.format((key1, key2), res1, res2))
+
+    async def rd_scard_cmd(self):
+        """
+        Returns the set cardinality (number of elements) of
+          the set stored at key.
+          Return value:
+          - the cardinality (number of elements) of the set
+          - 0 if key does not exist.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values1, values2 = ('TEST1', 'TEST2', 'TEST3'), 'TEST1'
+        with await self.rd1 as conn:
+            await conn.sadd(key1, *values1)
+            await conn.sadd(key2, values2)
+            res1 = await conn.scard(key1)
+            res2 = await conn.scard(key2)
+            await conn.delete(key1, key2)
+        frm = "HASH_CMD - 'SCARD': KEY- {0}, SET_MANY - {1}, SET_ONE - {2}\n"
         logger.debug(frm.format((key1, key2), res1, res2))
 
 
