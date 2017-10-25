@@ -19,6 +19,7 @@ class RedisSetCommands:
     async def run_list_cmd(self):
         await self.rd_sadd_cmd()
         await self.rd_scard_cmd()
+        await self.rd_sdiff_cmd()
 
     async def rd_sadd_cmd(self):
         """
@@ -62,6 +63,28 @@ class RedisSetCommands:
             await conn.delete(key1, key2)
         frm = "HASH_CMD - 'SCARD': KEY- {0}, SET_MANY - {1}, SET_ONE - {2}\n"
         logger.debug(frm.format((key1, key2), res1, res2))
+
+    async def rd_sdiff_cmd(self):
+        """
+        Returns the members of the set resulting from
+          the difference between the first set and all
+          the successive sets.
+        Return value:
+        - list with members of the resulting set.
+
+        :return: None
+        """
+        key1, key2, key3 = 'key1', 'key2', 'key3'
+        values1, values2, values3 = ('TEST1', 'TEST2', 'TEST3'), ('TEST1', 'TEST2'), ('TEST2', )
+        diff_key = (key2, key2)
+        with await self.rd1 as conn:
+            await conn.sadd(key1, *values1)
+            await conn.sadd(key2, *values2)
+            await conn.sadd(key3, *values2)
+            res1 = await conn.sdiff(key1, *diff_key)
+            await conn.delete(key1, key2, key3)
+        frm = "HASH_CMD - 'SDIFF': KEY- {0}, DIFF_SET_VALUES - {1}\n"
+        logger.debug(frm.format((key1, key2, key3), res1))
 
 
 def main():
