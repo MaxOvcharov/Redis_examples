@@ -23,6 +23,7 @@ class RedisSetCommands:
         await self.rd_sdiffstore_cmd()
         await self.rd_sinter_cmd()
         await self.rd_sinterstore_cmd()
+        await self.rd_sismember_cmd()
 
     async def rd_sadd_cmd(self):
         """
@@ -160,6 +161,28 @@ class RedisSetCommands:
             await conn.delete(key1, key2, key3, dest_key)
         frm = "HASH_CMD - 'SINTERSTORE': KEYS- {0}, INTERSECTION_VALUES - {1}\n"
         logger.debug(frm.format((key1, key2, key3), res1))
+
+    async def rd_sismember_cmd(self):
+        """
+        Returns if member is a member of the set stored at key.
+          Return value:
+          - 1 if the element is a member of the set.
+          - 0 if the element is not a member of the set, or if key
+            does not exist.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values1, values2 = ('TEST1', 'TEST2', 'TEST3'), ('TEST1', 'TEST3')
+        set_member = 'TEST2'
+        with await self.rd1 as conn:
+            await conn.sadd(key1, *values1)
+            await conn.sadd(key2, *values2)
+            res1 = await conn.sismember(key1, set_member)
+            res2 = await conn.sismember(key2, set_member)
+            await conn.delete(key1, key2)
+        frm = "HASH_CMD - 'SISMEMBER': KEYS- {0}, EXIST_MEMBER - {1}, NOT_EXIST_MEMBER - {2}\n"
+        logger.debug(frm.format((key1, key2), res1, res2))
 
 
 def main():
