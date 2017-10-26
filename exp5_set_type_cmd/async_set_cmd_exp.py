@@ -21,6 +21,7 @@ class RedisSetCommands:
         await self.rd_scard_cmd()
         await self.rd_sdiff_cmd()
         await self.rd_sdiffstore_cmd()
+        await self.rd_sinter_cmd()
 
     async def rd_sadd_cmd(self):
         """
@@ -77,11 +78,11 @@ class RedisSetCommands:
         """
         key1, key2, key3 = 'key1', 'key2', 'key3'
         values1, values2, values3 = ('TEST1', 'TEST2', 'TEST3'), ('TEST1', 'TEST2'), ('TEST2', )
-        diff_key = (key2, key2)
+        diff_key = (key2, key3)
         with await self.rd1 as conn:
             await conn.sadd(key1, *values1)
             await conn.sadd(key2, *values2)
-            await conn.sadd(key3, *values2)
+            await conn.sadd(key3, *values3)
             res1 = await conn.sdiff(key1, *diff_key)
             await conn.delete(key1, key2, key3)
         frm = "HASH_CMD - 'SDIFF': KEYS- {0}, DIFF_SET_VALUES - {1}\n"
@@ -99,15 +100,41 @@ class RedisSetCommands:
         """
         key1, key2, key3, dest_key = 'key1', 'key2', 'key3', 'key4'
         values1, values2, values3 = ('TEST1', 'TEST2', 'TEST3'), ('TEST1', 'TEST2'), ('TEST2', )
-        diff_key = (key2, key2)
+        diff_key = (key2, key3)
         with await self.rd1 as conn:
             await conn.sadd(key1, *values1)
             await conn.sadd(key2, *values2)
-            await conn.sadd(key3, *values2)
+            await conn.sadd(key3, *values3)
             await conn.sdiffstore(dest_key, key1, *diff_key)
             res1 = await conn.smembers(dest_key)
             await conn.delete(key1, key2, key3, dest_key)
         frm = "HASH_CMD - 'SDIFFSTORE': KEYS- {0}, DIFFSTORE_VALUES - {1}\n"
+        logger.debug(frm.format((key1, key2, key3), res1))
+
+    async def rd_sinter_cmd(self):
+        """
+        Returns the members of the set resulting from
+          the intersection of all the given sets.
+          Keys that do not exist are considered to be
+          empty sets. With one of the keys being an
+          empty set, the resulting set is also empty
+          (since set intersection with an empty set
+          always results in an empty set).
+          Return value:
+          - list with members of the resulting set.
+
+        :return: None
+        """
+        key1, key2, key3, dest_key = 'key1', 'key2', 'key3', 'key4'
+        values1, values2, values3 = ('TEST1', 'TEST2', 'TEST3'), ('TEST1', 'TEST2'), ('TEST2', )
+        diff_key = (key2, key3)
+        with await self.rd1 as conn:
+            await conn.sadd(key1, *values1)
+            await conn.sadd(key2, *values2)
+            await conn.sadd(key3, *values3)
+            res1 = await conn.sinter(key1, *diff_key)
+            await conn.delete(key1, key2, key3, dest_key)
+        frm = "HASH_CMD - 'SINTER': KEYS- {0}, INTERSECTION_VALUES - {1}\n"
         logger.debug(frm.format((key1, key2, key3), res1))
 
 
