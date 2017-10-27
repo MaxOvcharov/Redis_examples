@@ -24,6 +24,7 @@ class RedisSetCommands:
         await self.rd_sinter_cmd()
         await self.rd_sinterstore_cmd()
         await self.rd_sismember_cmd()
+        await self.rd_smembers_cmd()
 
     async def rd_sadd_cmd(self):
         """
@@ -183,6 +184,24 @@ class RedisSetCommands:
             await conn.delete(key1, key2)
         frm = "HASH_CMD - 'SISMEMBER': KEYS- {0}, EXIST_MEMBER - {1}, NOT_EXIST_MEMBER - {2}\n"
         logger.debug(frm.format((key1, key2), res1, res2))
+
+    async def rd_smembers_cmd(self):
+        """
+        Returns all the members of the set value stored at key.
+          This has the same effect as running SINTER with one argument key.
+          Return value:
+          - all elements of the set.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values1 = ['TEST1', 'TEST2', 'TEST3']
+        with await self.rd1 as conn:
+            await conn.sadd(key1, *values1)
+            res1 = await conn.smembers(key1)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'SMEMBERS': KEY- {0}, INTPUT - {1}, RES - {2}\n"
+        logger.debug(frm.format(key1, values1, res1))
 
 
 def main():
