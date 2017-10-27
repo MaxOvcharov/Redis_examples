@@ -25,6 +25,7 @@ class RedisSetCommands:
         await self.rd_sinterstore_cmd()
         await self.rd_sismember_cmd()
         await self.rd_smembers_cmd()
+        await self.rd_smove_cmd()
 
     async def rd_sadd_cmd(self):
         """
@@ -202,6 +203,37 @@ class RedisSetCommands:
             await conn.delete(key1)
         frm = "HASH_CMD - 'SMEMBERS': KEY- {0}, INTPUT - {1}, RES - {2}\n"
         logger.debug(frm.format(key1, values1, res1))
+
+    async def rd_smove_cmd(self):
+        """
+        Move member from the set at source to the set at
+          destination. This operation is atomic. In every
+          given moment the element will appear to be a
+          member of source or destination for other clients.
+          If the source set does not exist or does not contain
+          the specified element, no operation is performed and
+          0 is returned.
+          Otherwise, the element is removed from the source set
+          and added to the destination set. When the specified
+          element already exists in the destination set, it is
+          only removed from the source set.
+          Return value:
+          - 1 if the element is moved.
+          - 0 if the element is not a member of source and
+          no operation was performed.
+
+        :return: None
+        """
+        key1, des_key1, des_key2 = 'key1', 'des_key1', 'des_key2'
+        values1 = ['TEST1', 'TEST2', 'TEST3']
+        moved_val1, moved_val2 = b'test1', b'TEST1'
+        with await self.rd1 as conn:
+            await conn.sadd(key1, *values1)
+            res1 = await conn.smove(key1, des_key1, moved_val1)
+            res2 = await conn.smove(key1, des_key2, moved_val2)
+            await conn.delete(key1, des_key1, des_key2)
+        frm = "HASH_CMD - 'SMOVE': KEYS- {0}, MOVE_OK - {1}, MOVE_FAIL - {2}\n"
+        logger.debug(frm.format((key1, des_key1, des_key2), res1, res2))
 
 
 def main():
