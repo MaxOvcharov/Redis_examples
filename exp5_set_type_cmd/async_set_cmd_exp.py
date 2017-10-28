@@ -4,6 +4,7 @@
 """
 import asyncio
 import os
+from random import choice
 
 from redis_client import rd_client_factory
 from settings import BASE_DIR, logger
@@ -31,6 +32,7 @@ class RedisSetCommands:
         await self.rd_srem_cmd()
         await self.rd_sunion_cmd()
         await self.rd_sunionstore_cmd()
+        await self.rd_sscan_cmd()
 
     async def rd_sadd_cmd(self):
         """
@@ -359,6 +361,31 @@ class RedisSetCommands:
             await conn.delete(key1, key2, key3, dest_key)
         frm = "HASH_CMD - 'SUNIONSTORE': KEYS- {0}, UNION_VALUES - {1}\n"
         logger.debug(frm.format((key1, key2, key3, dest_key), res1))
+
+    async def rd_sscan_cmd(self):
+        """
+        SCAN is a cursor based iterator. This means that at
+          every call of the command, the server returns an
+          updated cursor that the user needs to use as the
+          cursor argument in the next call. An iteration
+          starts when the cursor is set to 0, and terminates
+          when the cursor returned by the server is 0.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values_tmp = ('TEST%s', 'test%s', 't%s')
+        values = (choice(values_tmp) % i for i in range(1, 5))
+        matched_keys = []
+        match, cur = b'test*', b'0'
+        with await self.rd1 as conn:
+            await conn.sadd(key1, *values)
+            while cur:
+                cur, keys = await conn.sscan(key1, cur, match=match)
+                matched_keys.extend(keys)
+            await conn.flushdb()
+        frm = "HASH_CMD - 'SSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
+        logger.debug(frm.format(key1, match, len(matched_keys)))
 
 
 def main():
