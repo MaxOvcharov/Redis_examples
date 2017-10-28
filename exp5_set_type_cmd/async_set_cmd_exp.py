@@ -28,6 +28,7 @@ class RedisSetCommands:
         await self.rd_smove_cmd()
         await self.rd_spop_cmd()
         await self.rd_srandmember_cmd()
+        await self.rd_srem_cmd()
 
     async def rd_sadd_cmd(self):
         """
@@ -263,8 +264,8 @@ class RedisSetCommands:
 
     async def rd_srandmember_cmd(self):
         """
-       When called with just the key argument, return a
-         random element from the set value stored at key.
+        When called with just the key argument, return a
+          random element from the set value stored at key.
           Return value:
           - without the additional count argument the
             command returns a Bulk Reply with the randomly
@@ -276,7 +277,7 @@ class RedisSetCommands:
         :return: None
         """
         key1 = 'key1'
-        values1 = ['TEST1', 'TEST2', 'TEST3', 'TEST3']
+        values1 = ['TEST1', 'TEST2', 'TEST3', 'TEST4']
         with await self.rd1 as conn:
             await conn.sadd(key1, *values1)
             res1 = await conn.srandmember(key1)
@@ -284,6 +285,31 @@ class RedisSetCommands:
             await conn.delete(key1)
         frm = "HASH_CMD - 'SRANDMEMBER': KEY- {0}, RANDOM_ONE - {1}, RANDOM_ARRAY - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_srem_cmd(self):
+        """
+        Remove the specified members from the set stored at key.
+          Specified members that are not a member of this set
+          are ignored. If key does not exist, it is treated as
+          an empty set and this command returns 0.
+          An error is returned when the value stored at
+          key is not a set.
+          Return value:
+          - the number of members that were removed from the set,
+            not including non existing members.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values1 = ['TEST1', 'TEST2', 'TEST3', 'TEST4']
+        with await self.rd1 as conn:
+            await conn.sadd(key1, *values1)
+            res1 = await conn.srem(key1, *values1[0:2])
+            res2 = await conn.srem(key1, 'TEST5')
+            res3 = await conn.smembers(key1)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'SREM': KEY- {0}, REMOVE_OK - {1}, REMOVE_FAIL - {2}, RES - {3}\n"
+        logger.debug(frm.format(key1, res1, res2, res3))
 
 
 def main():
