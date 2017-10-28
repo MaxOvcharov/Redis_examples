@@ -27,6 +27,7 @@ class RedisSetCommands:
         await self.rd_smembers_cmd()
         await self.rd_smove_cmd()
         await self.rd_spop_cmd()
+        await self.rd_srandmember_cmd()
 
     async def rd_sadd_cmd(self):
         """
@@ -258,6 +259,30 @@ class RedisSetCommands:
             res2 = await conn.spop(key1)
             await conn.delete(key1)
         frm = "HASH_CMD - 'SPOP': KEY- {0}, RANDOM_VAL1 - {1}, RANDOM_VAL2 - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_srandmember_cmd(self):
+        """
+       When called with just the key argument, return a
+         random element from the set value stored at key.
+          Return value:
+          - without the additional count argument the
+            command returns a Bulk Reply with the randomly
+            selected element, or nil when key does not exist.
+          - when the additional count argument is passed the
+            command returns an array of elements, or an empty
+            array when key does not exist.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values1 = ['TEST1', 'TEST2', 'TEST3', 'TEST3']
+        with await self.rd1 as conn:
+            await conn.sadd(key1, *values1)
+            res1 = await conn.srandmember(key1)
+            res2 = await conn.srandmember(key1, 2)
+            await conn.delete(key1)
+        frm = "HASH_CMD - 'SRANDMEMBER': KEY- {0}, RANDOM_ONE - {1}, RANDOM_ARRAY - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
 
