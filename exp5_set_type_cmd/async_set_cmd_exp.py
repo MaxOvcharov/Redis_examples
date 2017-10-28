@@ -33,6 +33,7 @@ class RedisSetCommands:
         await self.rd_sunion_cmd()
         await self.rd_sunionstore_cmd()
         await self.rd_sscan_cmd()
+        await self.rd_isscan_cmd()
 
     async def rd_sadd_cmd(self):
         """
@@ -385,6 +386,25 @@ class RedisSetCommands:
                 matched_keys.extend(keys)
             await conn.flushdb()
         frm = "HASH_CMD - 'SSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
+        logger.debug(frm.format(key1, match, len(matched_keys)))
+
+    async def rd_isscan_cmd(self):
+        """
+        Incrementally iterate the keys space using async for
+
+        :return: None
+        """
+        key1 = 'key1'
+        values_tmp = ('TEST%s', 'test%s', 't%s')
+        values = (choice(values_tmp) % i for i in range(1, 5))
+        matched_keys = []
+        match, cur = b'test*', b'0'
+        with await self.rd1 as conn:
+            await conn.sadd(key1, *values)
+            async for key in conn.isscan(key1, match=match):
+                matched_keys.extend(key)
+            await conn.flushdb()
+        frm = "HASH_CMD - 'ISSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
         logger.debug(frm.format(key1, match, len(matched_keys)))
 
 
