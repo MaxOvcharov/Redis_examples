@@ -21,6 +21,7 @@ class RedisHyperLogLogCommands:
 
     async def run_list_cmd(self):
         await self.rd_pfadd_cmd()
+        await self.rd_pfcount_cmd()
 
     async def rd_pfadd_cmd(self):
         """
@@ -58,6 +59,40 @@ class RedisHyperLogLogCommands:
             await conn.delete(key1, key2)
         frm = "HASH_CMD - 'PFADD': KEYS- {0}, INSERT_HLL - {1}, COUNT_VAL1 - {2}, COUNT_VAL2 - {3}\n"
         logger.debug(frm.format((key1, key2), (res1, res2), res3, res4))
+
+    async def rd_pfcount_cmd(self):
+        """
+        When called with a single key, returns the
+          approximated cardinality computed by the
+          HyperLogLog data structure stored at the
+          specified variable, which is 0 if the
+          variable does not exist.
+          When called with multiple keys, returns
+          the approximated cardinality of the union
+          of the HyperLogLogs passed, by internally
+          merging the HyperLogLogs stored at the
+          provided keys into a temporary HyperLogLog.
+          Return value:
+          - The approximated number of unique elements
+            observed via PFADD.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        value_tmp = 'TEST_%s'
+        values1 = [value_tmp % choice(string.ascii_letters) for _ in range(1, 10 ^ 3)]
+        values2 = [value_tmp % choice(['a', 'b', 'z']) for _ in range(1, 10 ^ 3)]
+        with await self.rd1 as conn:
+            res1 = await conn.pfadd(key1, *values1)
+            res2 = await conn.pfadd(key2, *values2)
+            res3 = await conn.pfcount(key1)
+            res4 = await conn.pfcount(key2)
+            res5 = await conn.pfcount(key1, key2)
+
+            await conn.delete(key1, key2)
+        frm = "HASH_CMD - 'PFADD': KEYS- {0}, INSERT_HLL - {1}," \
+              " COUNT_VAL1 - {2}, COUNT_VAL2 - {3}, COUNT_ALL - {4}\n"
+        logger.debug(frm.format((key1, key2), (res1, res2), res3, res4, res5))
 
 
 def main():
