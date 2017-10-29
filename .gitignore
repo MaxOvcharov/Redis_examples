@@ -102,3 +102,4 @@ ENV/
 
 # PyCarm
 .idea
+.DS_Store
