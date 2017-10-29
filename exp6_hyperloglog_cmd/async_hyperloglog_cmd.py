@@ -22,6 +22,7 @@ class RedisHyperLogLogCommands:
     async def run_list_cmd(self):
         await self.rd_pfadd_cmd()
         await self.rd_pfcount_cmd()
+        await self.rd_pfmerge_cmd()
 
     async def rd_pfadd_cmd(self):
         """
@@ -88,11 +89,36 @@ class RedisHyperLogLogCommands:
             res3 = await conn.pfcount(key1)
             res4 = await conn.pfcount(key2)
             res5 = await conn.pfcount(key1, key2)
-
             await conn.delete(key1, key2)
-        frm = "HASH_CMD - 'PFADD': KEYS- {0}, INSERT_HLL - {1}," \
+        frm = "HASH_CMD - 'PFCOUNT': KEYS- {0}, INSERT_HLL - {1}," \
               " COUNT_VAL1 - {2}, COUNT_VAL2 - {3}, COUNT_ALL - {4}\n"
         logger.debug(frm.format((key1, key2), (res1, res2), res3, res4, res5))
+
+    async def rd_pfmerge_cmd(self):
+        """
+        Merge multiple HyperLogLog values into an
+          unique value that will approximate the
+          cardinality of the union of the observed
+          Sets of the source HyperLogLog structures.
+          The computed merged HyperLogLog is set to
+          the destination variable, which is created
+          if does not exist (defaulting to an empty
+          HyperLogLog).
+          Return value:
+          - The command just returns OK.
+
+        :return: None
+        """
+        key1, key2, key3 = 'key1', 'key2', 'key3'
+        values1, values2 = ('TEST1', 'TEST2', 'TEST3'), ('TEST1', 'TEST1', 'TEST4', 'TEST5')
+        with await self.rd1 as conn:
+            await conn.pfadd(key1, *values1)
+            await conn.pfadd(key2, *values2)
+            res1 = await conn.pfmerge(key3, key1, key2)
+            res2 = await conn.pfcount(key3)
+            await conn.delete(key1, key2)
+        frm = "HASH_CMD - 'PFMERGE': KEYS- {0}, MERGE_RES - {1}, COUNT_MERGE - {2}\n"
+        logger.debug(frm.format((key1, key2), res1, res2))
 
 
 def main():
