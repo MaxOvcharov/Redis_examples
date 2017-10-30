@@ -19,7 +19,7 @@ class RedisHashCommands:
         self.rd2 = rd2
         self.rd_conf = conf
 
-    async def run_list_cmd(self):
+    async def run_hash_cmd(self):
         await self.rd_hset_cmd()
         await self.rd_hdel_cmd()
         await self.rd_hexists_cmd()
@@ -420,7 +420,7 @@ def main():
     rd2_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis2']))
     rgc = RedisHashCommands(rd1_conn.rd, rd2_conn.rd, conf=conf['redis2'])
     try:
-        loop.run_until_complete(rgc.run_list_cmd())
+        loop.run_until_complete(rgc.run_hash_cmd())
     except KeyboardInterrupt as e:
         logger.error("Caught keyboard interrupt {0}\nCanceling tasks...".format(e))
     finally:

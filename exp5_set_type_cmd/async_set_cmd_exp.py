@@ -17,7 +17,7 @@ class RedisSetCommands:
         self.rd2 = rd2
         self.rd_conf = conf
 
-    async def run_list_cmd(self):
+    async def run_set_cmd(self):
         await self.rd_sadd_cmd()
         await self.rd_scard_cmd()
         await self.rd_sdiff_cmd()
@@ -419,7 +419,7 @@ def main():
     rd2_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis2']))
     rgc = RedisSetCommands(rd1_conn.rd, rd2_conn.rd, conf=conf['redis2'])
     try:
-        loop.run_until_complete(rgc.run_list_cmd())
+        loop.run_until_complete(rgc.run_set_cmd())
     except KeyboardInterrupt as e:
         logger.error("Caught keyboard interrupt {0}\nCanceling tasks...".format(e))
     finally:
