@@ -54,7 +54,7 @@ class RedisSetCommands:
             res1 = await conn.sadd(key1, *values1)
             res2 = await conn.sadd(key2, values2)
             await conn.delete(key1, key2)
-        frm = "HASH_CMD - 'SADD': KEYS- {0}, SOME_VALUE - {1}, ONE_VALUE - {2}\n"
+        frm = "SET_CMD - 'SADD': KEYS- {0}, SOME_VALUE - {1}, ONE_VALUE - {2}\n"
         logger.debug(frm.format((key1, key2), res1, res2))
 
     async def rd_scard_cmd(self):
@@ -75,7 +75,7 @@ class RedisSetCommands:
             res1 = await conn.scard(key1)
             res2 = await conn.scard(key2)
             await conn.delete(key1, key2)
-        frm = "HASH_CMD - 'SCARD': KEYS- {0}, SET_MANY - {1}, SET_ONE - {2}\n"
+        frm = "SET_CMD - 'SCARD': KEYS- {0}, SET_MANY - {1}, SET_ONE - {2}\n"
         logger.debug(frm.format((key1, key2), res1, res2))
 
     async def rd_sdiff_cmd(self):
@@ -97,7 +97,7 @@ class RedisSetCommands:
             await conn.sadd(key3, *values3)
             res1 = await conn.sdiff(key1, *diff_key)
             await conn.delete(key1, key2, key3)
-        frm = "HASH_CMD - 'SDIFF': KEYS- {0}, DIFF_SET_VALUES - {1}\n"
+        frm = "SET_CMD - 'SDIFF': KEYS- {0}, DIFF_SET_VALUES - {1}\n"
         logger.debug(frm.format((key1, key2, key3), res1))
 
     async def rd_sdiffstore_cmd(self):
@@ -120,7 +120,7 @@ class RedisSetCommands:
             await conn.sdiffstore(dest_key, key1, *diff_key)
             res1 = await conn.smembers(dest_key)
             await conn.delete(key1, key2, key3, dest_key)
-        frm = "HASH_CMD - 'SDIFFSTORE': KEYS- {0}, DIFFSTORE_VALUES - {1}\n"
+        frm = "SET_CMD - 'SDIFFSTORE': KEYS- {0}, DIFFSTORE_VALUES - {1}\n"
         logger.debug(frm.format((key1, key2, key3), res1))
 
     async def rd_sinter_cmd(self):
@@ -146,7 +146,7 @@ class RedisSetCommands:
             await conn.sadd(key3, *values3)
             res1 = await conn.sinter(key1, *diff_key)
             await conn.delete(key1, key2, key3, dest_key)
-        frm = "HASH_CMD - 'SINTER': KEYS- {0}, INTERSECTION_VALUES - {1}\n"
+        frm = "SET_CMD - 'SINTER': KEYS- {0}, INTERSECTION_VALUES - {1}\n"
         logger.debug(frm.format((key1, key2, key3), res1))
 
     async def rd_sinterstore_cmd(self):
@@ -169,7 +169,7 @@ class RedisSetCommands:
             await conn.sinterstore(dest_key, key1, *diff_key)
             res1 = await conn.smembers(dest_key)
             await conn.delete(key1, key2, key3, dest_key)
-        frm = "HASH_CMD - 'SINTERSTORE': KEYS- {0}, INTERSECTION_VALUES - {1}\n"
+        frm = "SET_CMD - 'SINTERSTORE': KEYS- {0}, INTERSECTION_VALUES - {1}\n"
         logger.debug(frm.format((key1, key2, key3, dest_key), res1))
 
     async def rd_sismember_cmd(self):
@@ -191,7 +191,7 @@ class RedisSetCommands:
             res1 = await conn.sismember(key1, set_member)
             res2 = await conn.sismember(key2, set_member)
             await conn.delete(key1, key2)
-        frm = "HASH_CMD - 'SISMEMBER': KEYS- {0}, EXIST_MEMBER - {1}, NOT_EXIST_MEMBER - {2}\n"
+        frm = "SET_CMD - 'SISMEMBER': KEYS- {0}, EXIST_MEMBER - {1}, NOT_EXIST_MEMBER - {2}\n"
         logger.debug(frm.format((key1, key2), res1, res2))
 
     async def rd_smembers_cmd(self):
@@ -209,7 +209,7 @@ class RedisSetCommands:
             await conn.sadd(key1, *values1)
             res1 = await conn.smembers(key1)
             await conn.delete(key1)
-        frm = "HASH_CMD - 'SMEMBERS': KEY- {0}, INTPUT - {1}, RES - {2}\n"
+        frm = "SET_CMD - 'SMEMBERS': KEY- {0}, INTPUT - {1}, RES - {2}\n"
         logger.debug(frm.format(key1, values1, res1))
 
     async def rd_smove_cmd(self):
@@ -240,7 +240,7 @@ class RedisSetCommands:
             res1 = await conn.smove(key1, des_key1, moved_val1)
             res2 = await conn.smove(key1, des_key2, moved_val2)
             await conn.delete(key1, des_key1, des_key2)
-        frm = "HASH_CMD - 'SMOVE': KEYS- {0}, MOVE_OK - {1}, MOVE_FAIL - {2}\n"
+        frm = "SET_CMD - 'SMOVE': KEYS- {0}, MOVE_OK - {1}, MOVE_FAIL - {2}\n"
         logger.debug(frm.format((key1, des_key1, des_key2), res1, res2))
 
     async def rd_spop_cmd(self):
@@ -264,7 +264,7 @@ class RedisSetCommands:
             res1 = await conn.spop(key1)
             res2 = await conn.spop(key1)
             await conn.delete(key1)
-        frm = "HASH_CMD - 'SPOP': KEY- {0}, RANDOM_VAL1 - {1}, RANDOM_VAL2 - {2}\n"
+        frm = "SET_CMD - 'SPOP': KEY- {0}, RANDOM_VAL1 - {1}, RANDOM_VAL2 - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
     async def rd_srandmember_cmd(self):
@@ -288,7 +288,7 @@ class RedisSetCommands:
             res1 = await conn.srandmember(key1)
             res2 = await conn.srandmember(key1, 2)
             await conn.delete(key1)
-        frm = "HASH_CMD - 'SRANDMEMBER': KEY- {0}, RANDOM_ONE - {1}, RANDOM_ARRAY - {2}\n"
+        frm = "SET_CMD - 'SRANDMEMBER': KEY- {0}, RANDOM_ONE - {1}, RANDOM_ARRAY - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
     async def rd_srem_cmd(self):
@@ -313,7 +313,7 @@ class RedisSetCommands:
             res2 = await conn.srem(key1, 'TEST5')
             res3 = await conn.smembers(key1)
             await conn.delete(key1)
-        frm = "HASH_CMD - 'SREM': KEY- {0}, REMOVE_OK - {1}, REMOVE_FAIL - {2}, RES - {3}\n"
+        frm = "SET_CMD - 'SREM': KEY- {0}, REMOVE_OK - {1}, REMOVE_FAIL - {2}, RES - {3}\n"
         logger.debug(frm.format(key1, res1, res2, res3))
 
     async def rd_sunion_cmd(self):
@@ -336,7 +336,7 @@ class RedisSetCommands:
             await conn.sadd(key3, *values3)
             res1 = await conn.sunion(key1, *diff_key)
             await conn.delete(key1, key2, key3)
-        frm = "HASH_CMD - 'SNION': KEYS- {0}, UNION_VALUES - {1}\n"
+        frm = "SET_CMD - 'SNION': KEYS- {0}, UNION_VALUES - {1}\n"
         logger.debug(frm.format((key1, key2, key3), res1))
 
     async def rd_sunionstore_cmd(self):
@@ -360,7 +360,7 @@ class RedisSetCommands:
             await conn.sunionstore(dest_key, key1, *diff_key)
             res1 = await conn.smembers(dest_key)
             await conn.delete(key1, key2, key3, dest_key)
-        frm = "HASH_CMD - 'SUNIONSTORE': KEYS- {0}, UNION_VALUES - {1}\n"
+        frm = "SET_CMD - 'SUNIONSTORE': KEYS- {0}, UNION_VALUES - {1}\n"
         logger.debug(frm.format((key1, key2, key3, dest_key), res1))
 
     async def rd_sscan_cmd(self):
@@ -385,7 +385,7 @@ class RedisSetCommands:
                 cur, keys = await conn.sscan(key1, cur, match=match)
                 matched_keys.extend(keys)
             await conn.flushdb()
-        frm = "HASH_CMD - 'SSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
+        frm = "SET_CMD - 'SSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
         logger.debug(frm.format(key1, match, len(matched_keys)))
 
     async def rd_isscan_cmd(self):
@@ -404,7 +404,7 @@ class RedisSetCommands:
             async for key in conn.isscan(key1, match=match):
                 matched_keys.extend(key)
             await conn.flushdb()
-        frm = "HASH_CMD - 'ISSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
+        frm = "SET_CMD - 'ISSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
         logger.debug(frm.format(key1, match, len(matched_keys)))
 
 

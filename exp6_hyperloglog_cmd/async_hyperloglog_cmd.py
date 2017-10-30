@@ -58,7 +58,7 @@ class RedisHyperLogLogCommands:
             res4 = await conn.pfcount(key2)
 
             await conn.delete(key1, key2)
-        frm = "HASH_CMD - 'PFADD': KEYS- {0}, INSERT_HLL - {1}, COUNT_VAL1 - {2}, COUNT_VAL2 - {3}\n"
+        frm = "HLL_CMD - 'PFADD': KEYS- {0}, INSERT_HLL - {1}, COUNT_VAL1 - {2}, COUNT_VAL2 - {3}\n"
         logger.debug(frm.format((key1, key2), (res1, res2), res3, res4))
 
     async def rd_pfcount_cmd(self):
@@ -90,7 +90,7 @@ class RedisHyperLogLogCommands:
             res4 = await conn.pfcount(key2)
             res5 = await conn.pfcount(key1, key2)
             await conn.delete(key1, key2)
-        frm = "HASH_CMD - 'PFCOUNT': KEYS- {0}, INSERT_HLL - {1}," \
+        frm = "HLL_CMD - 'PFCOUNT': KEYS- {0}, INSERT_HLL - {1}," \
               " COUNT_VAL1 - {2}, COUNT_VAL2 - {3}, COUNT_ALL - {4}\n"
         logger.debug(frm.format((key1, key2), (res1, res2), res3, res4, res5))
 
@@ -117,7 +117,7 @@ class RedisHyperLogLogCommands:
             res1 = await conn.pfmerge(key3, key1, key2)
             res2 = await conn.pfcount(key3)
             await conn.delete(key1, key2)
-        frm = "HASH_CMD - 'PFMERGE': KEYS- {0}, MERGE_RES - {1}, COUNT_MERGE - {2}\n"
+        frm = "HLL_CMD - 'PFMERGE': KEYS- {0}, MERGE_RES - {1}, COUNT_MERGE - {2}\n"
         logger.debug(frm.format((key1, key2), res1, res2))
 
 

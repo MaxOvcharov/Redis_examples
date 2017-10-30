@@ -20,7 +20,30 @@ class RedisTransactionCommands:
         self.rd_conf = conf
 
     async def run_transaction_cmd(self):
-        pass
+        await self.rd_multi_exec_cmd()
+
+    async def rd_multi_exec_cmd(self):
+        """
+        Marks the start of a transaction block.
+          Subsequent commands will be queued for atomic
+          execution using EXEC.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        value1, value2 = '10', '2'
+        with await self.rd1 as conn:
+            await conn.set(key1, value1)
+            await conn.set(key2, value2)
+            tr = conn.multi_exec()
+            fut1 = tr.incr(key1)
+            fut2 = tr.incr(key2)
+            res1 = await tr.execute()
+            res2 = await asyncio.gather(fut1, fut2)
+            await conn.delete(key1, key2)
+        frm = "TRANSACTION_CMD - 'MULTI_EXEC': KEY - {0}, BEFORE - {1}," \
+              " AFTER_MULTI_EXEC - {2}, AFTER_SIMPLE_EXEC - {3}\n"
+        logger.debug(frm.format((key1, key2), (value1, value2), res1, res2))
 
 
 def main():
