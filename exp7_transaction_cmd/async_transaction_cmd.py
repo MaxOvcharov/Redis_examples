@@ -21,6 +21,7 @@ class RedisTransactionCommands:
 
     async def run_transaction_cmd(self):
         await self.rd_multi_exec_cmd()
+        await self.rd_pipeline_cmd()
 
     async def rd_multi_exec_cmd(self):
         """
@@ -43,6 +44,29 @@ class RedisTransactionCommands:
             await conn.delete(key1, key2)
         frm = "TRANSACTION_CMD - 'MULTI_EXEC': KEY - {0}, BEFORE - {1}," \
               " AFTER_MULTI_EXEC - {2}, AFTER_SIMPLE_EXEC - {3}\n"
+        logger.debug(frm.format((key1, key2), (value1, value2), res1, res2))
+
+    async def rd_pipeline_cmd(self):
+        """
+        Returns :class:`Pipeline` object to execute bulk of commands.
+          It is provided for convenience.
+          Commands can be pipelined without it.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        value1, value2 = '10', '2'
+        with await self.rd1 as conn:
+            await conn.set(key1, value1)
+            await conn.set(key2, value2)
+            pipe = conn.pipeline()
+            fut1 = pipe.incr(key1)
+            fut2 = pipe.incr(key2)
+            res1 = await pipe.execute()
+            res2 = await asyncio.gather(fut1, fut2)
+            await conn.delete(key1, key2)
+        frm = "TRANSACTION_CMD - 'PIPELINE': KEY - {0}, BEFORE - {1}," \
+              " AFTER_PIPELINE - {2}, AFTER_SIMPLE_EXEC - {3}\n"
         logger.debug(frm.format((key1, key2), (value1, value2), res1, res2))
 
 
