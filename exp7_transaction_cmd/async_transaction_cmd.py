@@ -23,6 +23,7 @@ class RedisTransactionCommands:
         await self.rd_multi_exec_cmd()
         await self.rd_pipeline_cmd()
         await self.rd_watch_cmd()
+        await self.rd_unwatch_cmd()
 
     async def rd_multi_exec_cmd(self):
         """
@@ -85,6 +86,29 @@ class RedisTransactionCommands:
             await conn.watch(key1, key2)
             tr = conn.multi_exec()
             fut1 = tr.incr(key1)
+            fut2 = tr.incr(key2)
+            res1 = await tr.execute()
+            res2 = await asyncio.gather(fut1, fut2)
+            await conn.delete(key1, key2)
+        frm = "TRANSACTION_CMD - 'WATCH': KEY - {0}, BEFORE - {1}," \
+              " AFTER_MULTI_EXEC - {2}, AFTER_SIMPLE_EXEC - {3}\n"
+        logger.debug(frm.format((key1, key2), (value1, value2), res1, res2))
+
+    async def rd_unwatch_cmd(self):
+        """
+        Forget about all watched keys.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        value1, value2 = '10', '2'
+        with await self.rd1 as conn:
+            await conn.set(key1, value1)
+            await conn.set(key2, value2)
+            await conn.watch(key1, key2)
+            tr = conn.multi_exec()
+            fut1 = tr.incr(key1)
+            await conn.unwatch()
             fut2 = tr.incr(key2)
             res1 = await tr.execute()
             res2 = await asyncio.gather(fut1, fut2)
