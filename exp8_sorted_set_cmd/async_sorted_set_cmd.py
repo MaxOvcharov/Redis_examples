@@ -4,9 +4,9 @@
 """
 import asyncio
 import os
-import string
-from random import choice
 
+from itertools import chain
+from random import choice
 
 from redis_client import rd_client_factory
 from settings import BASE_DIR, logger
@@ -20,7 +20,38 @@ class RedisSortedSetCommands:
         self.rd_conf = conf
 
     async def run_sorted_set_cmd(self):
-        pass
+        await self.rd_zadd_cmd()
+
+    async def rd_zadd_cmd(self):
+        """
+        Adds all the specified members with the specified
+          scores to the sorted set stored at key. It is
+          possible to specify multiple score / member pairs.
+          If a specified member is already a member of the
+          sorted set, the score is updated and the element
+          reinserted at the right position to ensure the
+          correct ordering.
+          Return value:
+          - The number of elements added to the sorted sets,
+            not including elements already existing for which
+            the score was updated.
+          - If the INCR option is specified, the return value
+            will be Bulk string reply: the new score of member
+            (a double precision floating point number),
+            represented as string.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values = ('TEST1', 'TEST1', 'TEST2', 'TEST3')
+        scores = (1, 2, 2, 1)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zrange(key1, 0, -1, withscores=True)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZADD': KEY- {0}, RES_VALUE - {1}\n"
+        logger.debug(frm.format(key1, res1))
 
 
 def main():
