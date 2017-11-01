@@ -21,6 +21,7 @@ class RedisSortedSetCommands:
 
     async def run_sorted_set_cmd(self):
         await self.rd_zadd_cmd()
+        await self.rd_zcard_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -52,6 +53,29 @@ class RedisSortedSetCommands:
             await conn.delete(key1)
         frm = "SORTED_SET_CMD - 'ZADD': KEY- {0}, RES_VALUE - {1}\n"
         logger.debug(frm.format(key1, res1))
+
+    async def rd_zcard_cmd(self):
+        """
+        Returns the sorted set cardinality (number of
+          elements) of the sorted set stored at key.
+          Return value:
+          - the cardinality (number of elements) of the
+            sorted set, or 0 if key does not exist.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values = ('TEST1', 'TEST1', 'TEST2', 'TEST3')
+        scores = (1, 2, 2, 1)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zcard(key1)
+            res2 = await conn.zcard(key2)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZCARD': KEY- {0}, ZCARD_EXIST_SET - {1}," \
+              " ZCARD_NOT_EXIST_SET - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
 
 
 def main():
