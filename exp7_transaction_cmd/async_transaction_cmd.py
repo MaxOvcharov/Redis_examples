@@ -4,9 +4,6 @@
 """
 import asyncio
 import os
-import string
-from random import choice
-
 
 from redis_client import rd_client_factory
 from settings import BASE_DIR, logger
