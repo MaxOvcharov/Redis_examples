@@ -179,7 +179,7 @@ class RedisSortedSetCommands:
             await conn.zadd(key2, *pairs2)
             res1 = await conn.zinterstore(key3, (key1, 2), (key2, 3),
                                           with_weights=True, aggregate='ZSET_AGGREGATE_SUM')
-            res2 = await conn.zrange(key1, 0, -1, withscores=True)
+            res2 = await conn.zrange(key3, 0, -1, withscores=True)
             await conn.delete(key1)
         frm = "SORTED_SET_CMD - 'ZINTERSTORE': KEYs- {0}, " \
               "RES_INTERSTORE - {1}, DEST_KEY_VAL - {2}\n"
