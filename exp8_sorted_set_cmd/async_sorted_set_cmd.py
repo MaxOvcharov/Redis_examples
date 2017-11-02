@@ -24,6 +24,7 @@ class RedisSortedSetCommands:
         await self.rd_zcard_cmd()
         await self.rd_zcount_cmd()
         await self.rd_zincrby_cmd()
+        await self.rd_zinterstore_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -143,6 +144,46 @@ class RedisSortedSetCommands:
         frm = "SORTED_SET_CMD - 'ZINCRBY': KEY- {0}, INCR - {1}, " \
               "DECR - {2}, NOT_EXIST - {3}, RES_SET - {4}\n"
         logger.debug(frm.format(key1, res1, res2, res3, res4))
+
+    async def rd_zinterstore_cmd(self):
+        """
+        Computes the intersection of numkeys sorted
+          sets given by the specified keys, and stores
+          the result in destination. It is mandatory
+          to provide the number of input keys (numkeys)
+          before passing the input keys and the other
+          (optional) arguments.
+          By default, the resulting score of an element
+          is the sum of its scores in the sorted sets
+          where it exists. Because intersection requires
+          an element to be a member of every given sorted
+          set, this results in the score of every element
+          in the resulting sorted set to be equal to the
+          number of input sorted sets.
+          For a description of the WEIGHTS and AGGREGATE
+          options, see ZUNIONSTORE. If destination already
+          exists, it is overwritten.
+          Return value:
+          - Integer reply: the number of elements in
+            the resulting sorted set at destination.
+
+        :return: None
+        """
+        key1, key2, key3 = 'key1', 'key2', 'key3'
+        values1, values2 = ('TEST1', 'TEST2'), ('TEST1', 'TEST2', 'TEST3')
+        scores1, scores2 = (1, 2), (1, 2, 3)
+        pairs1 = list(chain(*zip(scores1, values1)))
+        pairs2 = list(chain(*zip(scores2, values2)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs1)
+            await conn.zadd(key2, *pairs2)
+            res1 = await conn.zinterstore(key3, (key1, 2), (key2, 3),
+                                          with_weights=True, aggregate='ZSET_AGGREGATE_SUM')
+            res2 = await conn.zrange(key1, 0, -1, withscores=True)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZINTERSTORE': KEYs- {0}, " \
+              "RES_INTERSTORE - {1}, DEST_KEY_VAL - {2}\n"
+        logger.debug(frm.format((key1, key2, key3), res1, res2))
 
 
 def main():
