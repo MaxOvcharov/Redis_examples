@@ -23,6 +23,7 @@ class RedisSortedSetCommands:
         await self.rd_zadd_cmd()
         await self.rd_zcard_cmd()
         await self.rd_zcount_cmd()
+        await self.rd_zincrby_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -87,6 +88,7 @@ class RedisSortedSetCommands:
           get an idea of the range. Because of this there
           is no need to do a work proportional to the size
           of the range.
+
           Return value:
           - Integer reply: the number of elements in the
             specified score range.
@@ -104,6 +106,43 @@ class RedisSortedSetCommands:
         frm = "SORTED_SET_CMD - 'ZCOUNT': KEY- {0}, ZCOUNT_EXIST_SET - {1}," \
               " ZCOUNT_NOT_EXIST_SET - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_zincrby_cmd(self):
+        """
+        Increments the score of member in the
+          sorted set stored at key by increment.
+          If member does not exist in the sorted set,
+          it is added with increment as its score
+          (as if its previous score was 0.0). If key
+          does not exist, a new sorted set with the
+          specified member as its sole member is created.
+          An error is returned when key exists but
+          does not hold a sorted set.
+          The score value should be the string
+          representation of a numeric value, and accepts
+          double precision floating point numbers. It is
+          possible to provide a negative value to
+          decrement the score.
+          Return value:
+          - the new score of member (a double precision
+            floating point number), represented as string.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values = ('TEST1', 'TEST2')
+        scores = (1, 2)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zincrby(key1, 2, values[0])
+            res2 = await conn.zincrby(key1, -1, values[1])
+            res3 = await conn.zincrby(key1, 10, "TEST4")
+            res4 = await conn.zrange(key1, 0, -1, withscores=True)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZINCRBY': KEY- {0}, INCR - {1}, " \
+              "DECR - {2}, NOT_EXIST - {3}, RES_SET - {4}\n"
+        logger.debug(frm.format(key1, res1, res2, res3, res4))
 
 
 def main():
