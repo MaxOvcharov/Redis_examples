@@ -26,6 +26,7 @@ class RedisSortedSetCommands:
         await self.rd_zincrby_cmd()
         await self.rd_zinterstore_cmd()
         await self.rd_zlexcount_cmd()
+        await self.rd_zrange_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -211,6 +212,32 @@ class RedisSortedSetCommands:
             await conn.delete(key1)
         frm = "SORTED_SET_CMD - 'ZLENCOUNT': KEY- {0}, " \
               "RES_ALL - {1}, RES_INCLUDE - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_zrange_cmd(self):
+        """
+        Returns the specified range of elements in the
+          sorted set stored at key. The elements are
+          considered to be ordered from the lowest to
+          the highest score. Lexicographical order is
+          used for elements with equal score.
+          Return value:
+          - list of elements in the specified range
+            (optionally with their scores, in case
+            the WITHSCORES option is given).
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values = ('TEST1', 'TEST1', 'TEST2', 'TEST3')
+        scores = (1, 2, 2, 1)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zrange(key1, 0, -1, withscores=True)
+            res2 = await conn.zrange(key2, 0, -1, withscores=True)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZRANGE': KEY- {0}, RES_EXIST_LEN - {1}, RES_NOT_EXIST_LEN - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
 
