@@ -181,8 +181,8 @@ class RedisSortedSetCommands:
             res1 = await conn.zinterstore(key3, (key1, 2), (key2, 3),
                                           with_weights=True, aggregate='ZSET_AGGREGATE_SUM')
             res2 = await conn.zrange(key3, 0, -1, withscores=True)
-            await conn.delete(key1)
-        frm = "SORTED_SET_CMD - 'ZINTERSTORE': KEYs- {0}, " \
+            await conn.delete(key1, key2, key3)
+        frm = "SORTED_SET_CMD - 'ZINTERSTORE': KEYS- {0}, " \
               "RES_INTERSTORE - {1}, DEST_KEY_VAL - {2}\n"
         logger.debug(frm.format((key1, key2, key3), res1, res2))
 
@@ -199,21 +199,19 @@ class RedisSortedSetCommands:
 
         :return: None
         """
-        key1, key2, key3 = 'key1', 'key2', 'key3'
-        values1, values2 = ('TEST1', 'TEST2'), ('TEST1', 'TEST2', 'TEST3')
-        scores1, scores2 = (1, 2), (1, 2, 3)
+        key1 = 'key1'
+        values1 = ('TEST1', 'TEST2', 'TEST3', 'TEST4', 'TEST5')
+        scores1 = (1, 1, 1, 1, 1)
         pairs1 = list(chain(*zip(scores1, values1)))
-        pairs2 = list(chain(*zip(scores2, values2)))
         with await self.rd1 as conn:
             await conn.zadd(key1, *pairs1)
-            await conn.zadd(key2, *pairs2)
-            res1 = await conn.zinterstore(key3, (key1, 2), (key2, 3),
-                                          with_weights=True, aggregate='ZSET_AGGREGATE_SUM')
-            res2 = await conn.zrange(key3, 0, -1, withscores=True)
+            res1 = await conn.zlexcount(key1, min=b'-', max=b'+')
+            res2 = await conn.zlexcount(key1, min=b'TEST3', max=b'TEST5',
+                                        include_min=True, include_max=True)
             await conn.delete(key1)
-        frm = "SORTED_SET_CMD - 'ZLENCOUNT': KEYs- {0}, " \
-              "RES_INTERSTORE - {1}, DEST_KEY_VAL - {2}\n"
-        logger.debug(frm.format((key1, key2, key3), res1, res2))
+        frm = "SORTED_SET_CMD - 'ZLENCOUNT': KEY- {0}, " \
+              "RES_ALL - {1}, RES_INCLUDE - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
 
 
 def main():
