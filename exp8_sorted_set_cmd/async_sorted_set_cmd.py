@@ -29,6 +29,7 @@ class RedisSortedSetCommands:
         await self.rd_zrange_cmd()
         await self.rd_zrangebylex_cmd()
         await self.rd_zrangebyscore_cmd()
+        await self.rd_zrank_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -294,6 +295,34 @@ class RedisSortedSetCommands:
         frm = "SORTED_SET_CMD - 'ZRANGEBYSCORE': KEY- {0}, " \
               "RES1 - {1}, RES_NOT_OFFSET - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_zrank_cmd(self):
+        """
+        Returns the rank of member in the sorted set
+          stored at key, with the scores ordered from
+          low to high. The rank (or index) is 0-based,
+          which means that the member with the lowest
+          score has rank 0.
+          Return value:
+          - If member exists in the sorted set, Integer
+            reply: the rank of member.
+          - If member does not exist in the sorted set
+            or key does not exist, Bulk string reply: nil.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values = ('TEST1', 'TEST2', 'TEST3', 'TEST4', 'TEST5', 'TEST6')
+        scores = (1.3, 1.2, 1.1, 1.5, 2.0, 2.5)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zrank(key1, values[-1])
+            res2 = await conn.zrank(key2, values[-1])
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZRANK': KEYS- {0}, " \
+              "RES_EXIST - {1}, RES_NOT_EXIST - {2}\n"
+        logger.debug(frm.format((key1, key2), res1, res2))
 
 
 def main():
