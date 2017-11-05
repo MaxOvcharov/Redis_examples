@@ -27,6 +27,7 @@ class RedisSortedSetCommands:
         await self.rd_zinterstore_cmd()
         await self.rd_zlexcount_cmd()
         await self.rd_zrange_cmd()
+        await self.rd_zrangebylex_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -238,6 +239,33 @@ class RedisSortedSetCommands:
             res2 = await conn.zrange(key2, 0, -1, withscores=True)
             await conn.delete(key1)
         frm = "SORTED_SET_CMD - 'ZRANGE': KEY- {0}, RES_EXIST_LEN - {1}, RES_NOT_EXIST_LEN - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_zrangebylex_cmd(self):
+        """
+       When all the elements in a sorted set are
+         inserted with the same score, in order to
+         force lexicographical ordering, this command
+         returns all the elements in the sorted set
+         at key with a value between min and max.
+         If the elements in the sorted set have different
+         scores, the returned elements are unspecified.
+          Return value:
+          - list of elements in the specified score range.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values = ('TEST1', 'TEST2', 'TEST3', 'TEST4', 'TEST5', 'TEST6')
+        scores = (1, 1, 1, 1, 1, 1)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zrangebylex(key1, b'TEST2', b'TEST5', include_min=True, include_max=True)
+            res2 = await conn.zrangebylex(key1, b'TEST2', b'TEST5', include_min=False, include_max=False)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZRANGEBYLEX': KEY- {0}, " \
+              "RES_INCLUDE - {1}, RES_NOT_INCLUDE - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
 
