@@ -28,6 +28,7 @@ class RedisSortedSetCommands:
         await self.rd_zlexcount_cmd()
         await self.rd_zrange_cmd()
         await self.rd_zrangebylex_cmd()
+        await self.rd_zrangebyscore_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -266,6 +267,32 @@ class RedisSortedSetCommands:
             await conn.delete(key1)
         frm = "SORTED_SET_CMD - 'ZRANGEBYLEX': KEY- {0}, " \
               "RES_INCLUDE - {1}, RES_NOT_INCLUDE - {2}\n"
+        logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_zrangebyscore_cmd(self):
+        """
+        Returns all the elements in the sorted set at key
+          with a score between min and max (including
+          elements with score equal to min or max).
+          The elements are considered to be ordered from
+          low to high scores.
+          Return value:
+          - list of elements in the specified score range
+          (optionally with their scores).
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values = ('TEST1', 'TEST2', 'TEST3', 'TEST4', 'TEST5', 'TEST6')
+        scores = (1.3, 1.2, 1.1, 1.5, 2.0, 2.5)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zrangebyscore(key1, min=1.0, max=1.1, withscores=True)
+            res2 = await conn.zrangebyscore(key1, min=1.0, max=2.0, withscores=True, offset=1, count=2)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZRANGEBYSCORE': KEY- {0}, " \
+              "RES1 - {1}, RES_NOT_OFFSET - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
 
 
