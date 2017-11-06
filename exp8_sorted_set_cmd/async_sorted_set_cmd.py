@@ -32,6 +32,7 @@ class RedisSortedSetCommands:
         await self.rd_zrank_cmd()
         await self.rd_zrem_cmd()
         await self.rd_zremrangebylex_cmd()
+        await self.rd_zremrangebyrank_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -367,7 +368,7 @@ class RedisSortedSetCommands:
         """
         key1 = 'key1'
         values = ('a', 'b', 'c', 'd', 'f')
-        scores = (0, 0, 0, 0, 0, 0)
+        scores = (0, 0, 0, 0, 0)
         pairs = list(chain(*zip(scores, values)))
         with await self.rd1 as conn:
             await conn.zadd(key1, *pairs)
@@ -377,6 +378,36 @@ class RedisSortedSetCommands:
             res3 = await conn.zrange(key1, 0, -1)
             await conn.delete(key1)
         frm = "SORTED_SET_CMD - 'ZREMRANGEBYLEX': KEY- {0}, " \
+              "BEFORE - {1}, REM_NUM - {2}, AFTER - {3}\n"
+        logger.debug(frm.format(key1, res1, res2, res3))
+
+    async def rd_zremrangebyrank_cmd(self):
+        """
+        Removes all elements in the sorted set stored
+          at key with rank between start and stop.
+          Both start and stop are 0 -based indexes
+          with 0 being the element with the lowest score.
+          These indexes can be negative numbers, where
+          they indicate offsets starting at the element
+          with the highest score. For example: -1 is the
+          element with the highest score, -2 the element
+          with the second highest score and so forth.
+          Return value:
+          - the number of elements removed.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values = ('a', 'b', 'c', 'd', 'f')
+        scores = (1, 2, 3, 4, 5)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zrange(key1, 0, -1)
+            res2 = await conn.zremrangebyrank(key1, 0, 3)
+            res3 = await conn.zrange(key1, 0, -1)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZREMRANGEBYRANK': KEY- {0}, " \
               "BEFORE - {1}, REM_NUM - {2}, AFTER - {3}\n"
         logger.debug(frm.format(key1, res1, res2, res3))
 
