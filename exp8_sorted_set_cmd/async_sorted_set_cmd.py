@@ -30,6 +30,7 @@ class RedisSortedSetCommands:
         await self.rd_zrangebylex_cmd()
         await self.rd_zrangebyscore_cmd()
         await self.rd_zrank_cmd()
+        await self.rd_zrem_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -323,6 +324,33 @@ class RedisSortedSetCommands:
         frm = "SORTED_SET_CMD - 'ZRANK': KEYS- {0}, " \
               "RES_EXIST - {1}, RES_NOT_EXIST - {2}\n"
         logger.debug(frm.format((key1, key2), res1, res2))
+
+    async def rd_zrem_cmd(self):
+        """
+        Removes the specified members from the sorted
+          set stored at key. Non existing members are ignored.
+          An error is returned when key exists and does not
+          hold a sorted set.
+          Return value:
+          - The number of members removed from the sorted set,
+            not including non existing members.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values = ('TEST1', 'TEST2', 'TEST3', 'TEST4', 'TEST5', 'TEST6')
+        scores = (1.3, 1.2, 1.1, 1.5, 2.0, 2.5)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zrem(key1, *values[:4])
+            res2 = await conn.zrange(key1, 0, -1, withscores=True)
+            res3 = await conn.zrem(key1, 'TEST7')
+            res4 = await conn.zrange(key1, 0, -1, withscores=True)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZREM': KEY- {0}, " \
+              "REM_OK({1}) - {2}, RES_SKIP({3}) - {4}\n"
+        logger.debug(frm.format(key1, res1, res2, res3, res4))
 
 
 def main():
