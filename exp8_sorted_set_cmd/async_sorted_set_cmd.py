@@ -33,6 +33,7 @@ class RedisSortedSetCommands:
         await self.rd_zrem_cmd()
         await self.rd_zremrangebylex_cmd()
         await self.rd_zremrangebyrank_cmd()
+        await self.rd_zrevrange_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -411,6 +412,32 @@ class RedisSortedSetCommands:
               "BEFORE - {1}, REM_NUM - {2}, AFTER - {3}\n"
         logger.debug(frm.format(key1, res1, res2, res3))
 
+    async def rd_zrevrange_cmd(self):
+        """
+        Returns the specified range of elements in the
+          sorted set stored at key. The elements are
+          considered to be ordered from the highest to
+          the lowest score. Descending lexicographical
+          order is used for elements with equal score.
+          Apart from the reversed ordering, ZREVRANGE
+          is similar to ZRANGE.
+          Return value:
+          - list of elements in the specified range
+            (optionally with their scores).
+
+        :return: None
+        """
+        key1 = 'key1'
+        values = ('a', 'b', 'c', 'd', 'f')
+        scores = (1, 2, 3, 4, 5)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zrevrange(key1, 0, -1, withscores=True)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZREVRANGE': KEY- {0}, REVRANGE - {1}\n"
+        logger.debug(frm.format(key1, res1))
+
 
 def main():
     # load config from yaml file
@@ -430,6 +457,7 @@ def main():
         loop.run_until_complete(rd1_conn.close_connection())
         loop.run_until_complete(rd2_conn.close_connection())
         loop.close()
+
 
 if __name__ == '__main__':
     main()
