@@ -34,6 +34,7 @@ class RedisSortedSetCommands:
         await self.rd_zremrangebylex_cmd()
         await self.rd_zremrangebyrank_cmd()
         await self.rd_zrevrange_cmd()
+        await self.rd_zrevrangebyscore_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -436,6 +437,33 @@ class RedisSortedSetCommands:
             res1 = await conn.zrevrange(key1, 0, -1, withscores=True)
             await conn.delete(key1)
         frm = "SORTED_SET_CMD - 'ZREVRANGE': KEY- {0}, REVRANGE - {1}\n"
+        logger.debug(frm.format(key1, res1))
+
+    async def rd_zrevrangebyscore_cmd(self):
+        """
+        Returns all the elements in the sorted set at
+          key with a score between max and min (including
+          elements with score equal to max or min). In
+          contrary to the default ordering of sorted sets,
+          for this command the elements are considered to
+          be ordered from high to low scores.
+          The elements having the same score are returned
+          in reverse lexicographical order.
+          Return value:
+          - list of elements in the specified score range
+            (optionally with their scores).
+
+        :return: None
+        """
+        key1 = 'key1'
+        values = ('a', 'b', 'c', 'd', 'f')
+        scores = (1, 2, 3, 4, 5)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zrevrangebyscore(key1, withscores=True)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZREVRANGEBYSCORE': KEY- {0}, REVRANGEBYSCORE - {1}\n"
         logger.debug(frm.format(key1, res1))
 
 
