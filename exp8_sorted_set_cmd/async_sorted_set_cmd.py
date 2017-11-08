@@ -38,6 +38,7 @@ class RedisSortedSetCommands:
         await self.rd_zrevrangebyscore_cmd()
         await self.rd_zrevrangebylex_cmd()
         await self.rd_zrevrank_cmd()
+        await self.rd_zscore_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -543,6 +544,33 @@ class RedisSortedSetCommands:
         frm = "SORTED_SET_CMD - 'ZREVRANK': KEY- {0}, " \
               "EXIST_VALUE - {1}, NOT_EXIST_VALUE - {2}\n"
         logger.debug(frm.format(key1, res1, res2))
+
+    async def rd_zscore_cmd(self):
+        """
+        Returns the score of member in the
+          sorted set at key. If member does
+          not exist in the sorted set, or key
+          does not exist, nil is returned.
+          Return value:
+          - the score of member (a double
+            precision floating point number),
+            represented as string.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        values = ('a', 'b', 'c', 'd', 'f')
+        scores = (1, 2, 3, 4, 5, 6)
+        pairs = list(chain(*zip(scores, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            res1 = await conn.zscore(key1, 'b')
+            res2 = await conn.zscore(key1, 'g')
+            res3 = await conn.zscore(key2, 'b')
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZSCORE': KEYS - {0}, EXIST_VALUE - {1}," \
+              " NOT_EXIST_VALUE - {2}, NOT_EXIST_KEY - {3}\n"
+        logger.debug(frm.format((key1, key2), res1, res2, res3))
 
 
 def main():
