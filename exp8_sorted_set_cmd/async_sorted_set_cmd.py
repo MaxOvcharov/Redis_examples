@@ -6,7 +6,7 @@ import asyncio
 import os
 
 from itertools import chain
-from random import choice
+from random import choice, randint
 
 from redis_client import rd_client_factory
 from settings import BASE_DIR, logger
@@ -40,6 +40,7 @@ class RedisSortedSetCommands:
         await self.rd_zrevrank_cmd()
         await self.rd_zscore_cmd()
         await self.rd_zunionstore_cmd()
+        await self.rd_zscan_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -600,6 +601,33 @@ class RedisSortedSetCommands:
             await conn.delete(key1)
         frm = "SORTED_SET_CMD - 'ZUNIONSTORE': KEYS - {0}, UNION_RES - {1}\n"
         logger.debug(frm.format((key1, key2), res1))
+
+    async def rd_zscan_cmd(self):
+        """
+        SCAN is a cursor based iterator. This means that at
+          every call of the command, the server returns an
+          updated cursor that the user needs to use as the
+          cursor argument in the next call. An iteration
+          starts when the cursor is set to 0, and terminates
+          when the cursor returned by the server is 0.
+
+        :return: None
+        """
+        key1 = 'key1'
+        values_tmp = ('TEST%s', 'test%s', 't%s')
+        values = (choice(values_tmp) % i for i in range(1, 5))
+        scores = (randint(1, 10) for _ in range(1, 5))
+        pairs = list(chain(*zip(scores, values)))
+        matched_keys = []
+        match, cur = b'test*', b'0'
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            while cur:
+                cur, keys = await conn.zscan(key1, cur, match=match)
+                matched_keys.extend(keys)
+            await conn.flushdb()
+        frm = "SET_CMD - 'ZSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
+        logger.debug(frm.format(key1, match, len(matched_keys)))
 
 
 def main():
