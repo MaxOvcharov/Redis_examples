@@ -41,6 +41,7 @@ class RedisSortedSetCommands:
         await self.rd_zscore_cmd()
         await self.rd_zunionstore_cmd()
         await self.rd_zscan_cmd()
+        await self.rd_izscan_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -627,6 +628,27 @@ class RedisSortedSetCommands:
                 matched_keys.extend(keys)
             await conn.flushdb()
         frm = "SET_CMD - 'ZSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
+        logger.debug(frm.format(key1, match, len(matched_keys)))
+
+    async def rd_izscan_cmd(self):
+        """
+        Incrementally iterate the keys space using async for
+
+        :return: None
+        """
+        key1 = 'key1'
+        values_tmp = ('TEST%s', 'test%s', 't%s')
+        values = (choice(values_tmp) % i for i in range(1, 5))
+        scores = (randint(1, 10) for _ in range(1, 5))
+        pairs = list(chain(*zip(scores, values)))
+        matched_keys = []
+        match, cur = b'test*', b'0'
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs)
+            async for key in conn.izscan(key1, match=match):
+                matched_keys.extend(key)
+            await conn.flushdb()
+        frm = "SET_CMD - 'IZSCAN': KEY_TMP- {0}, MATCH_STR - {1}, MATCHED_KEYS - {2}\n"
         logger.debug(frm.format(key1, match, len(matched_keys)))
 
 
