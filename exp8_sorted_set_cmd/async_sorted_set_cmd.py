@@ -39,6 +39,7 @@ class RedisSortedSetCommands:
         await self.rd_zrevrangebylex_cmd()
         await self.rd_zrevrank_cmd()
         await self.rd_zscore_cmd()
+        await self.rd_zunionstore_cmd()
 
     async def rd_zadd_cmd(self):
         """
@@ -571,6 +572,34 @@ class RedisSortedSetCommands:
         frm = "SORTED_SET_CMD - 'ZSCORE': KEYS - {0}, EXIST_VALUE - {1}," \
               " NOT_EXIST_VALUE - {2}, NOT_EXIST_KEY - {3}\n"
         logger.debug(frm.format((key1, key2), res1, res2, res3))
+
+    async def rd_zunionstore_cmd(self):
+        """
+        Returns the score of member in the
+          sorted set at key. If member does
+          not exist in the sorted set, or key
+          does not exist, nil is returned.
+          Return value:
+          - the score of member (a double
+            precision floating point number),
+            represented as string.
+
+        :return: None
+        """
+        key1, key2, dest_key = 'key1', 'key2', 'key3'
+        values = ('a', 'b', 'c', 'd', 'f')
+        scores1, scores2 = (1, 2, 3, 4, 5, 6), (6, 5, 4, 3, 2, 1)
+        pairs1 = list(chain(*zip(scores1, values)))
+        pairs2 = list(chain(*zip(scores2, values)))
+        with await self.rd1 as conn:
+            await conn.zadd(key1, *pairs1)
+            await conn.zadd(key2, *pairs2)
+            await conn.zunionstore(dest_key, (key1, 1), (key2, 2), with_weights=True,
+                                   aggregate='ZSET_AGGREGATE_MAX')
+            res1 = await conn.zrange(dest_key, 0, -1, withscores=True)
+            await conn.delete(key1)
+        frm = "SORTED_SET_CMD - 'ZUNIONSTORE': KEYS - {0}, UNION_RES - {1}\n"
+        logger.debug(frm.format((key1, key2), res1))
 
 
 def main():
