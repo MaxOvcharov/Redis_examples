@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     Simple example of Redis SortedSet commands using async lib - aioredis
+    For commands details see: http://redis.io/commands/#sorted_set
 """
 import asyncio
 import os

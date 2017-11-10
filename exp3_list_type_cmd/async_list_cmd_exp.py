@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    Simple example of Redis Generic commands using async lib - aioredis
+    Simple example of Redis List commands using async lib - aioredis
+    For commands details see: http://redis.io/commands#list
 """
 import asyncio
 import os
@@ -445,6 +446,7 @@ def main():
         loop.run_until_complete(rd1_conn.close_connection())
         loop.run_until_complete(rd2_conn.close_connection())
         loop.close()
+
 
 if __name__ == '__main__':
     main()

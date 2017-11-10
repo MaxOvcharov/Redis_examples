@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     Simple example of Redis Transactions commands using async lib - aioredis
+    For commands details see: http://redis.io/commands/#transactions
 """
 import asyncio
 import os

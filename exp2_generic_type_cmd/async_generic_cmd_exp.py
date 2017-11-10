@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     Simple example of Redis Generic commands using async lib - aioredis
+    For commands details see: http://redis.io/commands/#generic
 """
 import asyncio
 import aioredis

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     Simple example of Redis Hash commands using async lib - aioredis
+    For commands details see: http://redis.io/commands#hash
 """
 import asyncio
 import os

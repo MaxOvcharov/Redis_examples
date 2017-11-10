@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     Simple example of commands with STRING KEY using async lib - aioredis
+    For commands details see: http://redis.io/commands/#string
 """
 import asyncio
 import os
