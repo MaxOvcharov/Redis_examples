@@ -22,8 +22,9 @@ class RedisScriptingCommands:
 
     async def run_scripting_cmd(self):
         await self.rd_eval_cmd()
-        await self.rd_script_load_cmd()
         await self.rd_evalsha_cmd()
+        await self.rd_script_load_cmd()
+        await self.rd_script_exists_cmd()
 
     async def rd_eval_cmd(self):
         """
@@ -91,6 +92,35 @@ class RedisScriptingCommands:
             res1 = await conn.script_load(script_cmd)
         frm = "SORTED_SCRIPTING_CMD - 'SCRIPT_LOAD': SCRIPT_SHA1_CACHE - {0}\n"
         logger.debug(frm.format(res1))
+
+    async def rd_script_exists_cmd(self):
+        """
+        Returns information about the existence of
+          the scripts in the script cache.
+          This command accepts one or more SHA1 digests
+          and returns a list of ones or zeros to signal
+          if the scripts are already defined or not inside
+          the script cache. This can be useful before a
+          pipelining operation to ensure that scripts are
+          loaded (and if not, to load them using SCRIPT LOAD)
+          so that the pipelining operation can be performed
+          solely using EVALSHA instead of EVAL to save bandwidth.
+
+          Return value:
+          - array of integers that correspond to the specified
+            SHA1 digest arguments. For every corresponding SHA1
+            digest of a script that actually exists in the script
+            cache, an 1 is returned, otherwise 0 is returned.
+
+        :return: None
+        """
+        script_cmd = "return {1,2,{3,'Hello World!'}}"
+        with await self.rd1 as conn:
+            script_sha1 = await conn.script_load(script_cmd)
+            res = await conn.script_exists(script_sha1)
+
+        frm = "SORTED_SCRIPTING_CMD - 'SCRIPT_EXISTS': SCRIPT_SHA1_CACHE - {0}, SCRIPT_EXIST - {1}\n"
+        logger.debug(frm.format(script_sha1[:-10], res))
 
 
 def main():
