@@ -23,6 +23,7 @@ class RedisScriptingCommands:
     async def run_scripting_cmd(self):
         await self.rd_eval_cmd()
         await self.rd_script_load_cmd()
+        await self.rd_evalsha_cmd()
 
     async def rd_eval_cmd(self):
         """
@@ -50,6 +51,22 @@ class RedisScriptingCommands:
         with await self.rd1 as conn:
             res1 = await conn.eval(script_cmd, args=[0])
         frm = "SORTED_SCRIPTING_CMD - 'EVAL': SCRIPT_RES_VALUE - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def rd_evalsha_cmd(self):
+        """
+        Evaluates a script cached on the server side
+          by its SHA1 digest. Scripts are cached on the
+          server side using the SCRIPT LOAD command.
+          The command is otherwise identical to EVAL.
+
+        :return: None
+        """
+        script_cmd = "return {1,2,{3,'Hello World!'}}"
+        with await self.rd1 as conn:
+            script_sha1 = await conn.script_load(script_cmd)
+            res1 = await conn.evalsha(script_sha1, args=[0])
+        frm = "SORTED_SCRIPTING_CMD - 'EVALSHA': SCRIPT_RES_VALUE - {0}\n"
         logger.debug(frm.format(res1))
 
     async def rd_script_load_cmd(self):
