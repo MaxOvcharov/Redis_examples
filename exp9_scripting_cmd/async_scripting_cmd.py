@@ -22,6 +22,7 @@ class RedisScriptingCommands:
 
     async def run_scripting_cmd(self):
         await self.rd_eval_cmd()
+        await self.rd_script_load_cmd()
 
     async def rd_eval_cmd(self):
         """
@@ -49,6 +50,29 @@ class RedisScriptingCommands:
         with await self.rd1 as conn:
             res1 = await conn.eval(script_cmd, args=[0])
         frm = "SORTED_SCRIPTING_CMD - 'EVAL': SCRIPT_RES_VALUE - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def rd_script_load_cmd(self):
+        """
+        Load a script into the scripts cache, without
+          executing it. After the specified command is
+          loaded into the script cache it will be callable
+          using EVALSHA with the correct SHA1 digest of the
+          script, exactly like after the first successful
+          invocation of EVAL.
+          The script is guaranteed to stay in the script
+          cache forever (unless SCRIPT FLUSH is called).
+          The command works in the same way even if the script
+          was already present in the script cache.
+          Return value:
+          - SHA1 digest of the script added into the script cache.
+
+        :return: None
+        """
+        script_cmd = "return {1,2,{3,'Hello World!'}}"
+        with await self.rd1 as conn:
+            res1 = await conn.script_load(script_cmd)
+        frm = "SORTED_SCRIPTING_CMD - 'SCRIPT_LOAD': SCRIPT_SHA1_CACHE - {0}\n"
         logger.debug(frm.format(res1))
 
 
