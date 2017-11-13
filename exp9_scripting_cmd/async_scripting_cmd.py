@@ -27,6 +27,7 @@ class RedisScriptingCommands:
         await self.rd_script_load_cmd()
         await self.rd_script_exists_cmd()
         await self.rd_script_kill_cmd()
+        await self.rd_script_flush_cmd()
 
     async def rd_eval_cmd(self):
         """
@@ -149,6 +150,29 @@ class RedisScriptingCommands:
         frm = "SORTED_SCRIPTING_CMD - 'SCRIPT_KILL': SCRIPT_SHA1_CACHE - {0},\n" \
               " SCRIPT_EVAL - {1}, KILL_RES - {2}\n"
         logger.debug(frm.format(script_sha1[:-10], res1, res2))
+
+    async def rd_script_flush_cmd(self):
+        """
+        Kills the currently executing Lua script,
+          assuming no write operation was yet performed
+          by the script. This command is mainly useful
+          to kill a script that is running for too much
+          time(for instance because it entered an infinite
+          loop because of a bug). The script will be killed
+          and the client currently blocked into EVAL will
+          see the command returning with an error.
+
+        :return: None
+        """
+        script_cmd = "return {1,2,{3,'Hello World!'}}"
+        with await self.rd1 as conn:
+            script_sha1 = await conn.script_load(script_cmd)
+            res1 = await conn.script_exists(script_sha1)
+            res2 = await conn.script_flush()
+            res3 = await conn.script_exists(script_sha1)
+        frm = "SORTED_SCRIPTING_CMD - 'SCRIPT_FLUSH': SHA1 - {0}, SHA1_EXIST - {1}," \
+              " SCRIPT_FLUSH - {2}, SHA1_NOT_EXIST - {3}\n"
+        logger.debug(frm.format(script_sha1[:-10], res1, res2, res3))
 
 
 def main():
