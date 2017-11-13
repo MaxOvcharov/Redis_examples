@@ -7,9 +7,6 @@ import asyncio
 import aioredis
 import os
 
-from itertools import chain
-from random import choice, randint
-
 from redis_client import rd_client_factory
 from settings import BASE_DIR, logger
 from utils import load_config
