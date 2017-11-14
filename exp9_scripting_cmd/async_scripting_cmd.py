@@ -51,7 +51,7 @@ class RedisScriptingCommands:
         script_cmd = "return {1,2,{3,'Hello World!'}}"
         with await self.rd1 as conn:
             res1 = await conn.eval(script_cmd, args=[0])
-        frm = "SORTED_SCRIPTING_CMD - 'EVAL': SCRIPT_RES_VALUE - {0}\n"
+        frm = "SCRIPTING_CMD - 'EVAL': SCRIPT_RES_VALUE - {0}\n"
         logger.debug(frm.format(res1))
 
     async def rd_evalsha_cmd(self):
@@ -67,7 +67,7 @@ class RedisScriptingCommands:
         with await self.rd1 as conn:
             script_sha1 = await conn.script_load(script_cmd)
             res1 = await conn.evalsha(script_sha1, args=[0])
-        frm = "SORTED_SCRIPTING_CMD - 'EVALSHA': SCRIPT_RES_VALUE - {0}\n"
+        frm = "SCRIPTING_CMD - 'EVALSHA': SCRIPT_RES_VALUE - {0}\n"
         logger.debug(frm.format(res1))
 
     async def rd_script_load_cmd(self):
@@ -90,7 +90,7 @@ class RedisScriptingCommands:
         script_cmd = "return {1,2,{3,'Hello World!'}}"
         with await self.rd1 as conn:
             res1 = await conn.script_load(script_cmd)
-        frm = "SORTED_SCRIPTING_CMD - 'SCRIPT_LOAD': SCRIPT_SHA1_CACHE - {0}\n"
+        frm = "SCRIPTING_CMD - 'SCRIPT_LOAD': SCRIPT_SHA1_CACHE - {0}\n"
         logger.debug(frm.format(res1))
 
     async def rd_script_exists_cmd(self):
@@ -119,7 +119,7 @@ class RedisScriptingCommands:
             script_sha1 = await conn.script_load(script_cmd)
             res = await conn.script_exists(script_sha1)
 
-        frm = "SORTED_SCRIPTING_CMD - 'SCRIPT_EXISTS': SCRIPT_SHA1_CACHE - {0}, SCRIPT_EXIST - {1}\n"
+        frm = "SCRIPTING_CMD - 'SCRIPT_EXISTS': SCRIPT_SHA1_CACHE - {0}, SCRIPT_EXIST - {1}\n"
         logger.debug(frm.format(script_sha1[:-10], res))
 
     async def rd_script_kill_cmd(self):
@@ -144,7 +144,7 @@ class RedisScriptingCommands:
         except aioredis.errors.ReplyError as e:
             res2 = e
 
-        frm = "SORTED_SCRIPTING_CMD - 'SCRIPT_KILL': SCRIPT_SHA1_CACHE - {0},\n" \
+        frm = "SCRIPTING_CMD - 'SCRIPT_KILL': SCRIPT_SHA1_CACHE - {0},\n" \
               " SCRIPT_EVAL - {1}, KILL_RES - {2}\n"
         logger.debug(frm.format(script_sha1[:-10], res1, res2))
 
@@ -167,7 +167,7 @@ class RedisScriptingCommands:
             res1 = await conn.script_exists(script_sha1)
             res2 = await conn.script_flush()
             res3 = await conn.script_exists(script_sha1)
-        frm = "SORTED_SCRIPTING_CMD - 'SCRIPT_FLUSH': SHA1 - {0}, SHA1_EXIST - {1}," \
+        frm = "SCRIPTING_CMD - 'SCRIPT_FLUSH': SHA1 - {0}, SHA1_EXIST - {1}," \
               " SCRIPT_FLUSH - {2}, SHA1_NOT_EXIST - {3}\n"
         logger.debug(frm.format(script_sha1[:-10], res1, res2, res3))
 

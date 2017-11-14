@@ -18,7 +18,23 @@ class RedisPubSubCommands:
         self.rd_conf = conf
 
     async def run_pubsub_cmd(self):
-        pass
+        await self.pubsub_publish_cmd()
+
+    async def pubsub_publish_cmd(self):
+        """
+        Posts a message to the given channel.
+          Return value:
+          - the number of clients that received the message.
+
+        :return: None
+        """
+        msg, channel = "Hello World!", 'TEST'
+        with await self.rd1 as conn1:
+            res1 = await conn1.subscribe(channel)
+        with await self.rd2 as conn2:
+            res2 = await conn2.publish(channel, msg)
+        frm = "PUBSUB_CMD - 'PUBLISH':SUB_RES - {0}, PUB_RES - {1}\n"
+        logger.debug(frm.format(res1, res2))
 
 
 def main():
