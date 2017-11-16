@@ -5,7 +5,6 @@
 """
 import asyncio
 import os
-import time
 
 from redis_client import rd_client_factory
 from settings import BASE_DIR, logger
@@ -37,9 +36,13 @@ class RedisSubWorker:
         :return: None
         """
         with await self.rd as conn:
-            ch = await conn.subscribe(self.channel)
+            ch = await conn.subscribe(*self.channel)
             while await ch[0].wait_message():
                 msg = await ch[0].get(encoding='utf-8')
+                frm = "PUBSUB_CMD - SUB_RESULT - {0}\n"
+                logger.debug(frm.format(msg))
+            while await ch[1].wait_message():
+                msg = await ch[1].get(encoding='utf-8')
                 frm = "PUBSUB_CMD - SUB_RESULT - {0}\n"
                 logger.debug(frm.format(msg))
 
@@ -52,6 +55,7 @@ class RedisPubSubCommands:
 
     async def run_pubsub_cmd(self):
         await self.pubsub_publish_cmd()
+        await self.pubsub_publish_json_cmd()
 
     async def pubsub_publish_cmd(self):
         """
@@ -67,6 +71,20 @@ class RedisPubSubCommands:
         frm = "PUBSUB_CMD - 'PUBLISH':PUB_RES - {0}\n"
         logger.debug(frm.format(res1))
 
+    async def pubsub_publish_json_cmd(self):
+        """
+        Posts a message(JSON) to the given channel.
+          Return value:
+          - the number of clients that received the message.
+
+        :return: None
+        """
+        msg_json, channel = {1: "Hello World!"}, 'TEST_JSON'
+        with await self.rd2 as conn2:
+            res1 = await conn2.publish_json(channel, msg_json)
+        frm = "PUBSUB_CMD - 'PUBLISH_JSON':PUB_RES - {0}\n"
+        logger.debug(frm.format(res1))
+
 
 def main():
     # load config from yaml file
@@ -78,7 +96,8 @@ def main():
     rd1_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis1']))
     rd2_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis2']))
     rgc = RedisPubSubCommands(rd1_conn.rd, rd2_conn.rd, conf=conf['redis2'])
-    asyncio.ensure_future(RedisSubWorker.connect(rd1_conn.rd, 'TEST', conf=conf['redis1']), loop=loop)
+    asyncio.ensure_future(RedisSubWorker.connect(rd1_conn.rd, ('TEST', 'TEST_JSON'),
+                                                 conf=conf['redis1']), loop=loop)
     try:
         loop.run_until_complete(rgc.run_pubsub_cmd())
     except KeyboardInterrupt as e:
