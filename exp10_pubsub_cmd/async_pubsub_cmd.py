@@ -43,7 +43,7 @@ class RedisSubWorker:
                 logger.debug(frm.format(msg))
             while await ch[1].wait_message():
                 msg = await ch[1].get(encoding='utf-8')
-                frm = "PUBSUB_CMD - SUB_RESULT - {0}\n"
+                frm = "PUBSUB_CMD - SUB_JSON_RESULT - {0}\n"
                 logger.debug(frm.format(msg))
 
 
@@ -56,6 +56,7 @@ class RedisPubSubCommands:
     async def run_pubsub_cmd(self):
         await self.pubsub_publish_cmd()
         await self.pubsub_publish_json_cmd()
+        await self.pubsub_subscribe_cmd()
 
     async def pubsub_publish_cmd(self):
         """
@@ -84,6 +85,18 @@ class RedisPubSubCommands:
             res1 = await conn2.publish_json(channel, msg_json)
         frm = "PUBSUB_CMD - 'PUBLISH_JSON':PUB_RES - {0}\n"
         logger.debug(frm.format(res1))
+
+    async def pubsub_subscribe_cmd(self):
+        """
+        Subscribes the client to the specified channels.
+
+        :return: None
+        """
+        channel = ('TEST', 'TEST_JSON')
+        with await self.rd1 as conn:
+            res1 = await conn.subscribe(*channel)
+        frm = "PUBSUB_CMD - 'SUBSCRIBE': RES - {0}\n"
+        logger.debug(frm.format([(ch.name, ch.is_pattern) for ch in res1]))
 
 
 def main():
