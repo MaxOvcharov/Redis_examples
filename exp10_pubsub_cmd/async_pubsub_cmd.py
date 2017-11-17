@@ -12,10 +12,10 @@ from utils import load_config
 
 
 class RedisSubWorker:
-    def __init__(self, rd, channel, conf=None):
-        self.rd = rd
+    def __init__(self, rd1, channels, conf=None):
+        self.rd1 = rd1
         self.rd_conf = conf
-        self.channel = channel
+        self.channels = channels
 
     @classmethod
     async def connect(cls, *args, **kwargs):
@@ -25,18 +25,18 @@ class RedisSubWorker:
         :return obj self: RedisSubWorker instance
         """
         self = cls(*args, **kwargs)
-        await self._init_connect()
+        await self._init_subscriber()
         return self
 
-    async def _init_connect(self):
+    async def _init_subscriber(self):
         """
         This method init Redis Subscriber which reads msg
           from queue.
 
         :return: None
         """
-        with await self.rd as conn:
-            ch = await conn.subscribe(*self.channel)
+        with await self.rd1 as conn:
+            ch = await conn.subscribe(*self.channels)
             while await ch[0].wait_message():
                 msg = await ch[0].get(encoding='utf-8')
                 frm = "PUBSUB_CMD - SUB_RESULT - {0}\n"
@@ -58,6 +58,7 @@ class RedisPubSubCommands:
         await self.pubsub_publish_json_cmd()
         await self.pubsub_subscribe_cmd()
         await self.pubsub_unsubscribe_cmd()
+        await self.pubsub_psubscribe_cmd()
 
     async def pubsub_publish_cmd(self):
         """
@@ -70,7 +71,7 @@ class RedisPubSubCommands:
         msg, channel = "Hello World!", 'TEST'
         with await self.rd2 as conn2:
             res1 = await conn2.publish(channel, msg)
-        frm = "PUBSUB_CMD - 'PUBLISH':PUB_RES - {0}\n"
+        frm = "PUBSUB_CMD - 'PUBLISH': PUB_RES - {0}\n"
         logger.debug(frm.format(res1))
 
     async def pubsub_publish_json_cmd(self):
@@ -84,7 +85,7 @@ class RedisPubSubCommands:
         msg_json, channel = {1: "Hello World!"}, 'TEST_JSON'
         with await self.rd2 as conn2:
             res1 = await conn2.publish_json(channel, msg_json)
-        frm = "PUBSUB_CMD - 'PUBLISH_JSON':PUB_RES - {0}\n"
+        frm = "PUBSUB_CMD - 'PUBLISH_JSON': PUB_RES - {0}\n"
         logger.debug(frm.format(res1))
 
     async def pubsub_subscribe_cmd(self):
@@ -113,10 +114,28 @@ class RedisPubSubCommands:
         channel = ('TEST', 'TEST_JSON')
         with await self.rd1 as conn:
             res1 = await conn.subscribe(*channel)
-            await asyncio.sleep(2)
             res2 = await conn.unsubscribe(*channel)
         frm = "PUBSUB_CMD - 'UNSUBSCRIBE': SUB_RES - {0}, UNSUB_RES = {1}\n"
         logger.debug(frm.format([(ch.name, ch.is_pattern) for ch in res1], res2))
+
+    async def pubsub_psubscribe_cmd(self):
+        """
+        Subscribes the client to the given patterns.
+          Supported glob-style patterns:
+          - h?llo subscribes to hello, hallo and hxllo
+          - h*llo subscribes to hllo and heeeello
+          - h[ae]llo subscribes to hello and hallo,
+            but not hillo
+          - Use \ to escape special characters if you
+            want to match them verbatim.t.
+
+        :return: None
+        """
+        patterns = ('TEST*', )
+        with await self.rd1 as conn:
+            res1 = await conn.psubscribe(*patterns)
+        frm = "PUBSUB_CMD - 'PSUBSCRIBE': PSUB_RES - {0}\n"
+        logger.debug(frm.format(res1))
 
 
 def main():
