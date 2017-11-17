@@ -57,6 +57,7 @@ class RedisPubSubCommands:
         await self.pubsub_publish_cmd()
         await self.pubsub_publish_json_cmd()
         await self.pubsub_subscribe_cmd()
+        await self.pubsub_unsubscribe_cmd()
 
     async def pubsub_publish_cmd(self):
         """
@@ -97,6 +98,25 @@ class RedisPubSubCommands:
             res1 = await conn.subscribe(*channel)
         frm = "PUBSUB_CMD - 'SUBSCRIBE': RES - {0}\n"
         logger.debug(frm.format([(ch.name, ch.is_pattern) for ch in res1]))
+
+    async def pubsub_unsubscribe_cmd(self):
+        """
+        Unsubscribes the client from the given
+          channels, or from all of them if none is given.
+          When no channels are specified, the client is
+          unsubscribed from all the previously subscribed
+          channels. In this case, a message for every
+          unsubscribed channel will be sent to the client.
+
+        :return: None
+        """
+        channel = ('TEST', 'TEST_JSON')
+        with await self.rd1 as conn:
+            res1 = await conn.subscribe(*channel)
+            await asyncio.sleep(2)
+            res2 = await conn.unsubscribe(*channel)
+        frm = "PUBSUB_CMD - 'UNSUBSCRIBE': SUB_RES - {0}, UNSUB_RES = {1}\n"
+        logger.debug(frm.format([(ch.name, ch.is_pattern) for ch in res1], res2))
 
 
 def main():
