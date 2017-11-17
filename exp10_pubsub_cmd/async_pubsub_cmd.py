@@ -59,6 +59,7 @@ class RedisPubSubCommands:
         await self.pubsub_subscribe_cmd()
         await self.pubsub_unsubscribe_cmd()
         await self.pubsub_psubscribe_cmd()
+        await self.pubsub_punsubscribe_cmd()
 
     async def pubsub_publish_cmd(self):
         """
@@ -136,6 +137,24 @@ class RedisPubSubCommands:
             res1 = await conn.psubscribe(*patterns)
         frm = "PUBSUB_CMD - 'PSUBSCRIBE': PSUB_RES - {0}\n"
         logger.debug(frm.format(res1))
+
+    async def pubsub_punsubscribe_cmd(self):
+        """
+        Unsubscribes the client from the given
+          patterns, or from all of them if none is given.
+          When no patterns are specified, the client is
+          unsubscribed from all the previously subscribed
+          patterns. In this case, a message for every
+          unsubscribed pattern will be sent to the client.
+
+        :return: None
+        """
+        patterns = ('TEST*', )
+        with await self.rd1 as conn:
+            res1 = await conn.psubscribe(*patterns)
+            res2 = await conn.punsubscribe(*patterns)
+        frm = "PUBSUB_CMD - 'PSUBSCRIBE': PSUB_RES - {0}, PUNSUB_RES - {1}\n"
+        logger.debug(frm.format([(ch.name, ch.is_pattern) for ch in res1], res2))
 
 
 def main():
