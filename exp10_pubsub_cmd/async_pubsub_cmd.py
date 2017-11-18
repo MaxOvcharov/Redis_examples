@@ -62,6 +62,7 @@ class RedisPubSubCommands:
         await self.pubsub_punsubscribe_cmd()
         await self.pubsub_pubsub_channels_cmd()
         await self.pubsub_pubsub_numsub_cmd()
+        await self.pubsub_pubsub_numpat_cmd()
 
     async def pubsub_publish_cmd(self):
         """
@@ -181,6 +182,21 @@ class RedisPubSubCommands:
         with await self.rd1 as conn:
             res1 = await conn.pubsub_numsub(*channels)
         frm = "PUBSUB_CMD - 'PUBSUB_NUMSUB': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def pubsub_pubsub_numpat_cmd(self):
+        """
+        Returns the number of subscriptions to patterns.
+
+        :return: None
+        """
+        patterns = ('TEST*', )
+        with await self.rd2 as conn2:
+            await conn2.psubscribe(*patterns)
+
+        with await self.rd1 as conn:
+            res1 = await conn.pubsub_numpat()
+        frm = "PUBSUB_CMD - 'PUBSUB_NUMPAT': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
