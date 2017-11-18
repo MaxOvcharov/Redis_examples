@@ -60,6 +60,7 @@ class RedisPubSubCommands:
         await self.pubsub_unsubscribe_cmd()
         await self.pubsub_psubscribe_cmd()
         await self.pubsub_punsubscribe_cmd()
+        await self.pubsub_pubsub_channels_cmd()
 
     async def pubsub_publish_cmd(self):
         """
@@ -95,9 +96,9 @@ class RedisPubSubCommands:
 
         :return: None
         """
-        channel = ('TEST', 'TEST_JSON')
+        channels = ('TEST', 'TEST_JSON')
         with await self.rd1 as conn:
-            res1 = await conn.subscribe(*channel)
+            res1 = await conn.subscribe(*channels)
         frm = "PUBSUB_CMD - 'SUBSCRIBE': RES - {0}\n"
         logger.debug(frm.format([(ch.name, ch.is_pattern) for ch in res1]))
 
@@ -112,10 +113,10 @@ class RedisPubSubCommands:
 
         :return: None
         """
-        channel = ('TEST', 'TEST_JSON')
+        channels = ('TEST', 'TEST_JSON')
         with await self.rd1 as conn:
-            res1 = await conn.subscribe(*channel)
-            res2 = await conn.unsubscribe(*channel)
+            res1 = await conn.subscribe(*channels)
+            res2 = await conn.unsubscribe(*channels)
         frm = "PUBSUB_CMD - 'UNSUBSCRIBE': SUB_RES - {0}, UNSUB_RES = {1}\n"
         logger.debug(frm.format([(ch.name, ch.is_pattern) for ch in res1], res2))
 
@@ -155,6 +156,18 @@ class RedisPubSubCommands:
             res2 = await conn.punsubscribe(*patterns)
         frm = "PUBSUB_CMD - 'PSUBSCRIBE': PSUB_RES - {0}, PUNSUB_RES - {1}\n"
         logger.debug(frm.format([(ch.name, ch.is_pattern) for ch in res1], res2))
+
+    async def pubsub_pubsub_channels_cmd(self):
+        """
+        Lists the currently active channels.
+
+        :return: None
+        """
+        pattern = 'TEST*'
+        with await self.rd1 as conn:
+            res1 = await conn.pubsub_channels(pattern=pattern)
+        frm = "PUBSUB_CMD - 'PUBSUB_CHANNELS': PUBSUB_CHANNELS_RES - {0}\n"
+        logger.debug(frm.format(res1))
 
 
 def main():
