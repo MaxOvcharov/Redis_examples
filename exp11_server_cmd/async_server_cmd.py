@@ -34,7 +34,7 @@ class RedisServerCommands:
 
         :return: None
         """
-        key1, key2 = 'key_list1', 'key_list1'
+        key1, key2 = 'key_list1', 'key_list2'
         values1, values2 = ['TEST1', 'TEST2', 'TEST3'], ['test1', 'test2']
         with await self.rd1 as conn:
             await conn.rpush(key1, *values1)
@@ -42,7 +42,7 @@ class RedisServerCommands:
         with await self.rd1 as conn:
             aof_dir = await conn.config_get(parameter='dir')
             res1 = await conn.bgrewriteaof()
-            await asinc
+            await asyncio.sleep(2)
             res2 = os.listdir(aof_dir['dir'])
         frm = "SERVER_CMD - 'BGREWRITEAOF': RES - {0}, AOF_DIR - {1}, AOF_EXIST - {2}\n"
         logger.debug(frm.format(res1, aof_dir, res2))
