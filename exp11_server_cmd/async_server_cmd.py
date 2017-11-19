@@ -17,8 +17,35 @@ class RedisServerCommands:
         self.rd2 = rd2
         self.rd_conf = conf
 
-    async def run_pubsub_cmd(self):
-        pass
+    async def run_server_cmd(self):
+        await self.server_bgrewriteaof_cmd()
+
+    async def server_bgrewriteaof_cmd(self):
+        """
+        Instruct Redis to start an Append Only File
+          rewrite process. The rewrite will create a
+          small optimized version of the current
+          Append Only File.
+          If BGREWRITEAOF fails, no data gets lost
+          as the old AOF will be untouched.
+          The rewrite will be only triggered by Redis
+          if there is not already a background process
+          doing persistence.
+
+        :return: None
+        """
+        key1, key2 = 'key_list1', 'key_list1'
+        values1, values2 = ['TEST1', 'TEST2', 'TEST3'], ['test1', 'test2']
+        with await self.rd1 as conn:
+            await conn.rpush(key1, *values1)
+            await conn.rpush(key2, *values2)
+        with await self.rd1 as conn:
+            aof_dir = await conn.config_get(parameter='dir')
+            res1 = await conn.bgrewriteaof()
+            await asinc
+            res2 = os.listdir(aof_dir['dir'])
+        frm = "SERVER_CMD - 'BGREWRITEAOF': RES - {0}, AOF_DIR - {1}, AOF_EXIST - {2}\n"
+        logger.debug(frm.format(res1, aof_dir, res2))
 
 
 def main():
@@ -32,7 +59,7 @@ def main():
     rd2_conn = loop.run_until_complete(rd_client_factory(loop=loop, conf=conf['redis2']))
     rgc = RedisServerCommands(rd1_conn.rd, rd2_conn.rd, conf=conf['redis2'])
     try:
-        loop.run_until_complete(rgc.run_pubsub_cmd())
+        loop.run_until_complete(rgc.run_server_cmd())
     except KeyboardInterrupt as e:
         logger.error("Caught keyboard interrupt {0}\nCanceling tasks...".format(e))
     finally:
