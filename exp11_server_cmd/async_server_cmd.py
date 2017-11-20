@@ -20,6 +20,7 @@ class RedisServerCommands:
     async def run_server_cmd(self):
         await self.server_bgrewriteaof_cmd()
         await self.server_bgsave_cmd()
+        await self.server_client_list_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -66,6 +67,37 @@ class RedisServerCommands:
         frm = "SERVER_CMD - 'BGSAVE': BGSAVE_RES - {0}, LAST_SAVE_AFTER - {1}, " \
               "LAST_SAVE_BEFORE - {2}\n"
         logger.debug(frm.format(res1, ls_before, ls_after))
+
+    async def server_client_list_cmd(self):
+        """
+        The CLIENT LIST command returns information and
+          statistics about the client connections server in
+          a mostly human readable format.
+          Here is the meaning of the fields:
+            - id: an unique 64-bit client ID (introduced in Redis 2.8.12).
+            - addr: address/port of the client
+            - fd: file descriptor corresponding to the socket
+            - age: total duration of the connection in seconds
+            - idle: idle time of the connection in seconds
+            - flags: client flags (see below)
+            - db: current database ID
+            - sub: number of channel subscriptions
+            - psub: number of pattern matching subscriptions
+            - multi: number of commands in a MULTI/EXEC context
+            - qbuf: query buffer length (0 means no query pending)
+            - qbuf-free: free space of the query buffer (0 means the buffer is full)
+            - obl: output buffer length
+            - oll: output list length (replies are queued in this list when the buffer is full)
+            - omem: output buffer memory usage
+            - events: file descriptor events (see below)
+            -cmd: last command played
+
+        :return: None
+        """
+        with await self.rd1 as conn:
+            res1 = await conn.client_list()
+        frm = "SERVER_CMD - 'CLIENT_LIST': RES - {0}\n"
+        logger.debug(frm.format(res1))
 
 
 def main():
