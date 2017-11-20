@@ -19,6 +19,7 @@ class RedisServerCommands:
 
     async def run_server_cmd(self):
         await self.server_bgrewriteaof_cmd()
+        await self.server_bgsave_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -46,6 +47,25 @@ class RedisServerCommands:
             res2 = os.listdir(aof_dir['dir'])
         frm = "SERVER_CMD - 'BGREWRITEAOF': RES - {0}, AOF_DIR - {1}, AOF_EXIST - {2}\n"
         logger.debug(frm.format(res1, aof_dir, res2))
+
+    async def server_bgsave_cmd(self):
+        """
+        Save the DB in background. The OK code is immediately
+          returned. Redis forks, the parent continues to serve
+          the clients, the child saves the DB on disk then exits.
+          A client may be able to check if the operation
+          succeeded using the LASTSAVE command.
+
+        :return: None
+        """
+        with await self.rd1 as conn:
+            ls_before = await conn.lastsave()
+            res1 = await conn.bgsave()
+            await asyncio.sleep(2)
+            ls_after = await conn.lastsave()
+        frm = "SERVER_CMD - 'BGSAVE': BGSAVE_RES - {0}, LAST_SAVE_AFTER - {1}, " \
+              "LAST_SAVE_BEFORE - {2}\n"
+        logger.debug(frm.format(res1, ls_before, ls_after))
 
 
 def main():
