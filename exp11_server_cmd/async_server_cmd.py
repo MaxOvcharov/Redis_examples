@@ -22,6 +22,7 @@ class RedisServerCommands:
         await self.server_bgsave_cmd()
         await self.server_client_list_cmd()
         await self.server_client_getname_cmd()
+        await self.server_client_pause_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -112,6 +113,29 @@ class RedisServerCommands:
         with await self.rd1 as conn:
             res1 = await conn.client_getname()
         frm = "SERVER_CMD - 'CLIENT_NAME': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def server_client_pause_cmd(self):
+        """
+        CLIENT PAUSE is a connections control command able
+          to suspend all the Redis clients for the specified
+          amount of time (in milliseconds).
+          The command performs the following actions:
+           - It stops processing all the pending commands from
+             normal and pub/sub clients. However interactions
+             with slaves will continue normally.
+           - However it returns OK to the caller ASAP, so the
+             CLIENT PAUSE command execution is not paused by itself.
+           - When the specified amount of time has elapsed, all
+             the clients are unblocked: this will trigger the
+             processing of all the commands accumulated in
+             the query buffer of every client during the pause.
+
+        :return: None
+        """
+        with await self.rd1 as conn:
+            res1 = await conn.client_pause(2)
+        frm = "SERVER_CMD - 'CLIENT_PAUSE': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
