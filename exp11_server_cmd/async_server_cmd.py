@@ -21,6 +21,7 @@ class RedisServerCommands:
         await self.server_bgrewriteaof_cmd()
         await self.server_bgsave_cmd()
         await self.server_client_list_cmd()
+        await self.server_client_getname_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -97,6 +98,20 @@ class RedisServerCommands:
         with await self.rd1 as conn:
             res1 = await conn.client_list()
         frm = "SERVER_CMD - 'CLIENT_LIST': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def server_client_getname_cmd(self):
+        """
+        The CLIENT GETNAME returns the name of the current
+          connection as set by CLIENT SETNAME. Since every
+          new connection starts without an associated name,
+          if no name was assigned a null bulk reply is returned.
+
+        :return: None
+        """
+        with await self.rd1 as conn:
+            res1 = await conn.client_getname()
+        frm = "SERVER_CMD - 'CLIENT_NAME': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
