@@ -23,6 +23,7 @@ class RedisServerCommands:
         await self.server_client_list_cmd()
         await self.server_client_getname_cmd()
         await self.server_client_pause_cmd()
+        await self.server_client_setname_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -97,9 +98,10 @@ class RedisServerCommands:
         :return: None
         """
         with await self.rd1 as conn:
+            await conn.client_setname('test_name')
             res1 = await conn.client_list()
-        frm = "SERVER_CMD - 'CLIENT_LIST': RES - {0}\n"
-        logger.debug(frm.format(res1))
+        frm = "SERVER_CMD - 'CLIENT_LIST': LIST_LEN - {0}, RES - {1}\n"
+        logger.debug(frm.format(len(res1), res1))
 
     async def server_client_getname_cmd(self):
         """
@@ -111,8 +113,9 @@ class RedisServerCommands:
         :return: None
         """
         with await self.rd1 as conn:
+            await conn.client_setname('test_name')
             res1 = await conn.client_getname()
-        frm = "SERVER_CMD - 'CLIENT_NAME': RES - {0}\n"
+        frm = "SERVER_CMD - 'CLIENT_GETNAME': RES - {0}\n"
         logger.debug(frm.format(res1))
 
     async def server_client_pause_cmd(self):
@@ -137,6 +140,24 @@ class RedisServerCommands:
             res1 = await conn.client_pause(2)
         frm = "SERVER_CMD - 'CLIENT_PAUSE': RES - {0}\n"
         logger.debug(frm.format(res1))
+
+    async def server_client_setname_cmd(self):
+        """
+        The CLIENT SETNAME command assigns a name to the
+          current connection. The assigned name is displayed
+          in the output of CLIENT LIST so that it is possible
+          to identify the client that performed a given connection.
+          For instance when Redis is used in order to implement
+          a queue, producers and consumers of messages may want
+          to set the name of the connection according to their role.
+
+        :return: None
+        """
+        with await self.rd1 as conn:
+            res1 = await conn.client_setname('test_name')
+            res2 = await conn.client_getname()
+        frm = "SERVER_CMD - 'CLIENT_SETNAME': SET_RES - {0}, GET_RES - {1}\n"
+        logger.debug(frm.format(res1, res2))
 
 
 def main():
