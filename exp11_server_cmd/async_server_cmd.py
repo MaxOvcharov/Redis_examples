@@ -24,6 +24,7 @@ class RedisServerCommands:
         await self.server_client_getname_cmd()
         await self.server_client_pause_cmd()
         await self.server_client_setname_cmd()
+        await self.server_config_get_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -158,6 +159,20 @@ class RedisServerCommands:
             res2 = await conn.client_getname()
         frm = "SERVER_CMD - 'CLIENT_SETNAME': SET_RES - {0}, GET_RES - {1}\n"
         logger.debug(frm.format(res1, res2))
+
+    async def server_config_get_cmd(self):
+        """
+        The CONFIG GET command is used to read the configuration
+          parameters of a running Redis server. You can obtain a
+          list of all the supported configuration parameters
+          by typing 'CONFIG GET *'
+
+        :return: None
+        """
+        with await self.rd1 as conn:
+            res1 = await conn.config_get(parameter='dir')
+        frm = "SERVER_CMD - 'CONFIG_GET': CONF_PARAM - {0}\n"
+        logger.debug(frm.format(res1))
 
 
 def main():
