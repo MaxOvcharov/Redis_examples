@@ -25,6 +25,7 @@ class RedisServerCommands:
         await self.server_client_pause_cmd()
         await self.server_client_setname_cmd()
         await self.server_config_get_cmd()
+        await self.server_config_rewrite_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -172,6 +173,22 @@ class RedisServerCommands:
         with await self.rd1 as conn:
             res1 = await conn.config_get(parameter='dir')
         frm = "SERVER_CMD - 'CONFIG_GET': CONF_PARAM - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def server_config_rewrite_cmd(self):
+        """
+        The CONFIG REWRITE command rewrites the redis.conf
+          file the server was started with, applying the
+          minimal changes needed to make it reflect the
+          configuration currently used by the server,
+          which may be different compared to the original
+          one because of the use of the CONFIG SET command.
+
+        :return: None
+        """
+        with await self.rd1 as conn:
+            res1 = await conn.config_rewrite()
+        frm = "SERVER_CMD - 'CONFIG_REWRITE': REWRITE_CONF_RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
