@@ -28,6 +28,7 @@ class RedisServerCommands:
         await self.server_config_rewrite_cmd()
         await self.server_config_set_cmd()
         await self.server_config_resetstat_cmd()
+        await self.server_dbsize_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -241,6 +242,22 @@ class RedisServerCommands:
         frm = "SERVER_CMD - 'CONFIG_RESETSTAT': INFO_BEFORE - {0}, RES - {1}, " \
               "INFO_AFTER - {2}\n"
         logger.debug(frm.format(info_before['keyspace'], res1, info_after['keyspace']))
+
+    async def server_dbsize_cmd(self):
+        """
+        Return the number of keys in the currently-selected database.
+
+        :return: None
+        """
+        key = 'key'
+        value = 'test_str_setex_cmd'
+        time_of_ex = 1
+        with await self.rd1 as conn:
+            await conn.setex(key, time_of_ex, value)
+            res1 = await conn.dbsize()
+            await conn.delete(key)
+        frm = "SERVER_CMD - 'DBSIZE': RES - {0}\n"
+        logger.debug(frm.format(res1))
 
 
 def main():
