@@ -26,6 +26,7 @@ class RedisServerCommands:
         await self.server_client_setname_cmd()
         await self.server_config_get_cmd()
         await self.server_config_rewrite_cmd()
+        await self.server_config_set_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -190,6 +191,25 @@ class RedisServerCommands:
             res1 = await conn.config_rewrite()
         frm = "SERVER_CMD - 'CONFIG_REWRITE': REWRITE_CONF_RES - {0}\n"
         logger.debug(frm.format(res1))
+
+    async def server_config_set_cmd(self):
+        """
+        The CONFIG SET command is used in order to
+          reconfigure the server at run time without
+          the need to restart Redis. You can change
+          both trivial parameters or switch from one
+          to another persistence option using this command.
+
+        :return: None
+        """
+        with await self.rd1 as conn:
+            res_before = await conn.config_get(parameter='appendonly')
+            value = 'no' if res_before['appendonly'] == 'yes' else 'yes'
+            res1 = await conn.config_set('appendonly', value)
+            res_after = await conn.config_get(parameter='appendonly')
+        frm = "SERVER_CMD - 'CONFIG_SET': CONF_PARAM_BEFORE - {0}, RES - {1}, " \
+              "CONF_PARAM_AFTER - {2}\n"
+        logger.debug(frm.format(res_before, res1, res_after))
 
 
 def main():
