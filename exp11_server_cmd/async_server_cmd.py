@@ -27,6 +27,7 @@ class RedisServerCommands:
         await self.server_config_get_cmd()
         await self.server_config_rewrite_cmd()
         await self.server_config_set_cmd()
+        await self.server_config_resetstat_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -210,6 +211,36 @@ class RedisServerCommands:
         frm = "SERVER_CMD - 'CONFIG_SET': CONF_PARAM_BEFORE - {0}, RES - {1}, " \
               "CONF_PARAM_AFTER - {2}\n"
         logger.debug(frm.format(res_before, res1, res_after))
+
+    async def server_config_resetstat_cmd(self):
+        """
+        Resets the statistics reported by Redis
+          using the INFO command.
+          These are the counters that are reset:
+          - Keyspace hits;
+          - Keyspace misses;
+          - Number of commands processed;
+          - Number of connections received;
+          - Number of expired keys;
+          - Number of rejected connections;
+          - Latest fork(2) time;
+          - The aof_delayed_fsync counter.
+
+        :return: None
+        """
+        key = 'key'
+        value = 'test_str_setex_cmd'
+        time_of_ex = 1
+        with await self.rd1 as conn:
+            await conn.setex(key, time_of_ex, value)
+            info_before = await conn.info()
+            await asyncio.sleep(2)
+            res1 = await conn.config_resetstat()
+            info_after = await conn.info()
+            await conn.delete(key)
+        frm = "SERVER_CMD - 'CONFIG_RESETSTAT': INFO_BEFORE - {0}, RES - {1}, " \
+              "INFO_AFTER - {2}\n"
+        logger.debug(frm.format(info_before['keyspace'], res1, info_after['keyspace']))
 
 
 def main():
