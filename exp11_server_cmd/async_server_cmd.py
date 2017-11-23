@@ -30,6 +30,7 @@ class RedisServerCommands:
         await self.server_config_resetstat_cmd()
         await self.server_dbsize_cmd()
         await self.server_debug_object_cmd()
+        await self.server_flushall_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -55,6 +56,7 @@ class RedisServerCommands:
             res1 = await conn.bgrewriteaof()
             await asyncio.sleep(2)
             res2 = os.listdir(aof_dir['dir'])
+            await conn.delete(key1, key2)
         frm = "SERVER_CMD - 'BGREWRITEAOF': RES - {0}, AOF_DIR - {1}, AOF_EXIST - {2}\n"
         logger.debug(frm.format(res1, aof_dir, res2))
 
@@ -275,6 +277,34 @@ class RedisServerCommands:
             await conn.delete(key)
         frm = "SERVER_CMD - 'DEBUG_OBJECT': RES - {0}\n"
         logger.debug(frm.format(res1))
+
+    async def server_flushall_cmd(self):
+        """
+        Delete all the keys of all the existing
+          databases, not just the currently
+          selected one. This command never fails.
+          The time-complexity for this operation
+          is O(N), N being the number of keys in
+          all existing databases.
+
+        :return: None
+        """
+        key = 'key'
+        value = 'test_str_setex_cmd'
+        time_of_ex = 10
+        with await self.rd1 as conn:
+            await conn.setex(key, time_of_ex, value)
+            res1_before = await conn.keys('*')
+        with await self.rd2 as conn:
+            await conn.setex(key, time_of_ex, value)
+            res2_before = await conn.keys('*')
+            await conn.flushall()
+            res2_after = await conn.keys('*')
+        with await self.rd1 as conn:
+            res1_after = await conn.keys('*')
+        frm = "SERVER_CMD - 'FLUSHALL': RES_DB1_BEFORE - {0},  " \
+              "RES_DB1_AFTER - {1}, RES_DB2_BEFORE - {2}, RES_DB2_AFTER - {3}\n"
+        logger.debug(frm.format(res1_before, res1_after, res2_before, res2_after))
 
 
 def main():
