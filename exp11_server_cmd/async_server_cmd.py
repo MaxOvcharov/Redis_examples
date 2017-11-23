@@ -32,6 +32,7 @@ class RedisServerCommands:
         await self.server_debug_object_cmd()
         await self.server_flushall_cmd()
         await self.server_flushdb_cmd()
+        await self.server_info_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -328,6 +329,33 @@ class RedisServerCommands:
             res1_after = await conn.keys('*')
         frm = "SERVER_CMD - 'FLUSHDB': RES_DB1_BEFORE - {0}, RES_DB1_AFTER - {1}\n"
         logger.debug(frm.format(res1_before, res1_after))
+
+    async def server_info_cmd(self):
+        """
+        The INFO command returns information and
+          statistics about the server in a format
+          that is simple to parse by computers
+          and easy to read by humans.
+          The optional parameter can be used to
+          select a specific section of information:
+          - server: General information about the Redis server
+          - clients: Client connections section
+          - memory: Memory consumption related information
+          - persistence: RDB and AOF related information
+          - stats: General statistics
+          - replication: Master/slave replication information
+          - cpu: CPU consumption statistics
+          - commandstats: Redis command statistics
+          - cluster: Redis Cluster section
+          - keyspace: Database related statistics
+
+        :return: None
+        """
+
+        with await self.rd1 as conn:
+            res1 = await conn.info(section='memory')
+        frm = "SERVER_CMD - 'INFO': RES_INFO - {0}\n"
+        logger.debug(frm.format(list(res1['memory'].keys())))
 
 
 def main():
