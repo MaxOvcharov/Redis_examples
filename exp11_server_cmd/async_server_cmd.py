@@ -31,6 +31,7 @@ class RedisServerCommands:
         await self.server_dbsize_cmd()
         await self.server_debug_object_cmd()
         await self.server_flushall_cmd()
+        await self.server_flushdb_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -305,6 +306,28 @@ class RedisServerCommands:
         frm = "SERVER_CMD - 'FLUSHALL': RES_DB1_BEFORE - {0},  " \
               "RES_DB1_AFTER - {1}, RES_DB2_BEFORE - {2}, RES_DB2_AFTER - {3}\n"
         logger.debug(frm.format(res1_before, res1_after, res2_before, res2_after))
+
+    async def server_flushdb_cmd(self):
+        """
+        Delete all the keys of the currently
+         selected DB. This command never fails.
+         The time-complexity for this operation
+         is O(N), N being the number of keys
+         in the database.
+
+        :return: None
+        """
+        key1, key2 = 'key1', 'key2'
+        value1, value2 = 'TEST1', 'TEST2'
+        time_of_ex = 10
+        with await self.rd1 as conn:
+            await conn.setex(key1, time_of_ex, value1)
+            await conn.setex(key2, time_of_ex, value2)
+            res1_before = await conn.keys('*')
+            await conn.flushdb()
+            res1_after = await conn.keys('*')
+        frm = "SERVER_CMD - 'FLUSHDB': RES_DB1_BEFORE - {0}, RES_DB1_AFTER - {1}\n"
+        logger.debug(frm.format(res1_before, res1_after))
 
 
 def main():
