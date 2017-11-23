@@ -29,6 +29,7 @@ class RedisServerCommands:
         await self.server_config_set_cmd()
         await self.server_config_resetstat_cmd()
         await self.server_dbsize_cmd()
+        await self.server_debug_object_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -257,6 +258,22 @@ class RedisServerCommands:
             res1 = await conn.dbsize()
             await conn.delete(key)
         frm = "SERVER_CMD - 'DBSIZE': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def server_debug_object_cmd(self):
+        """
+        Get debugging information about a key.
+
+        :return: None
+        """
+        key = 'key'
+        value = 'test_str_setex_cmd'
+        time_of_ex = 1
+        with await self.rd1 as conn:
+            await conn.setex(key, time_of_ex, value)
+            res1 = await conn.debug_object(key)
+            await conn.delete(key)
+        frm = "SERVER_CMD - 'DEBUG_OBJECT': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
