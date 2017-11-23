@@ -24,7 +24,7 @@ class RedisClient:
         return self
 
     async def init_connection(self):
-        self.rd = await aioredis.create_pool(
+        self.rd = await aioredis.create_redis_pool(
             (self.conf['host'], self.conf['port']),
             db=self.conf['db'],
             password=self.conf['password'],
@@ -37,6 +37,7 @@ class RedisClient:
         self.rd.close()
         await self.rd.wait_closed()
         logger.debug('Redis closing pool connection...')
+
 
 async def rd_client_factory(loop, conf, client=RedisClient):
     """ Abstract Redis client factory """
