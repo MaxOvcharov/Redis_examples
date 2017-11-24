@@ -33,6 +33,7 @@ class RedisServerCommands:
         await self.server_flushall_cmd()
         await self.server_flushdb_cmd()
         await self.server_info_cmd()
+        await self.server_lastsave_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -356,6 +357,26 @@ class RedisServerCommands:
             res1 = await conn.info(section='memory')
         frm = "SERVER_CMD - 'INFO': RES_INFO - {0}\n"
         logger.debug(frm.format(list(res1['memory'].keys())))
+
+    async def server_lastsave_cmd(self):
+        """
+        Return the UNIX TIME of the last DB save executed
+          with success. A client may check if a BGSAVE
+          command succeeded reading the LASTSAVE value,
+          then issuing a BGSAVE command and checking at
+          regular intervals every N seconds if LASTSAVE changed.
+
+        :return: None
+        """
+
+        with await self.rd1 as conn:
+            ls_before = await conn.lastsave()
+            await asyncio.sleep(2)
+            res = await conn.bgsave()
+            await asyncio.sleep(2)
+            ls_after = await conn.lastsave()
+        frm = "SERVER_CMD - 'LASTSAVE': BEFORE - {0}, AFTER - {1}, BGSAVE - {2}\n"
+        logger.debug(frm.format(ls_before, ls_after, res))
 
 
 def main():
