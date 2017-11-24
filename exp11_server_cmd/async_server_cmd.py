@@ -35,6 +35,7 @@ class RedisServerCommands:
         await self.server_info_cmd()
         await self.server_lastsave_cmd()
         await self.server_role_cmd()
+        await self.server_save_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -396,6 +397,29 @@ class RedisServerCommands:
         with await self.rd1 as conn:
             res1 = await conn.role()
         frm = "SERVER_CMD - 'ROLE': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def server_save_cmd(self):
+        """
+        The SAVE commands performs a synchronous save
+          of the dataset producing a point in time
+          snapshot of all the data inside the Redis
+          instance, in the form of an RDB file.
+          You almost never want to call SAVE in production
+          environments where it will block all the other
+          clients. Instead usually BGSAVE is used.
+          However in case of issues preventing Redis
+          to create the background saving child (for
+          instance errors in the fork(2) system call),
+          the SAVE command can be a good last resort to
+          perform the dump of the latest dataset.
+
+        :return: None
+        """
+
+        with await self.rd1 as conn:
+            res1 = await conn.save()
+        frm = "SERVER_CMD - 'SAVE': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
