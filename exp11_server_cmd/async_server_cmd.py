@@ -34,6 +34,7 @@ class RedisServerCommands:
         await self.server_flushdb_cmd()
         await self.server_info_cmd()
         await self.server_lastsave_cmd()
+        await self.server_role_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -377,6 +378,25 @@ class RedisServerCommands:
             ls_after = await conn.lastsave()
         frm = "SERVER_CMD - 'LASTSAVE': BEFORE - {0}, AFTER - {1}, BGSAVE - {2}\n"
         logger.debug(frm.format(ls_before, ls_after, res))
+
+    async def server_role_cmd(self):
+        """
+        The command returns an array of elements.
+          The first element is the role of the
+          instance, as one of the following three strings:
+          - "master";
+          - "slave";
+          - "sentinel"
+
+          The additional elements of the array depends on the role.
+
+        :return: None
+        """
+
+        with await self.rd1 as conn:
+            res1 = await conn.role()
+        frm = "SERVER_CMD - 'ROLE': RES - {0}\n"
+        logger.debug(frm.format(res1))
 
 
 def main():
