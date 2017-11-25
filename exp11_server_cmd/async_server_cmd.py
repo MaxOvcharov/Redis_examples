@@ -38,6 +38,7 @@ class RedisServerCommands:
         await self.server_save_cmd()
         # await self.server_shutdown_cmd()
         await self.server_slaveof_cmd()
+        await self.server_slowlog_get_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -463,6 +464,27 @@ class RedisServerCommands:
             res1 = await conn.slaveof(None)
 
         frm = "SERVER_CMD - 'SLAVEOF': RES_SLAVEOF - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def server_slowlog_get_cmd(self):
+        """
+        The Redis Slow Log is a system to log
+          queries that exceeded a specified execution
+          time. The execution time does not include
+          I/O operations like talking with the client,
+          sending the reply and so forth, but just the
+          time needed to actually execute the command
+          (this is the only stage of command execution
+          where the thread is blocked and can not serve
+          other requests in the meantime).
+
+        :return: None
+        """
+
+        with await self.rd1 as conn:
+            res1 = await conn.slowlog_get(length=2)
+
+        frm = "SERVER_CMD - 'SLOWLOG_GET': LOGS - {0}\n"
         logger.debug(frm.format(res1))
 
 
