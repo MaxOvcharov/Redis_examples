@@ -41,6 +41,7 @@ class RedisServerCommands:
         await self.server_slowlog_get_cmd()
         await self.server_slowlog_len_cmd()
         await self.server_slowlog_reset_cmd()
+        await self.server_sync_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -517,6 +518,18 @@ class RedisServerCommands:
         frm = "SERVER_CMD - 'SLOWLOG_RESET': LEN_BEFORE - {0}, " \
               "RESET_RES - {1}, LEN_AFTER - {2}\n"
         logger.debug(frm.format(len_before, res1, len_after))
+
+    async def server_sync_cmd(self):
+        """
+        Redis-server internal command used for replication.
+
+        :return: None
+        """
+        with await self.rd1 as conn:
+            res1 = await conn.sync()
+
+        frm = "SERVER_CMD - 'SYNC': RES - {0}\n"
+        logger.debug(frm.format(res1))
 
 
 def main():
