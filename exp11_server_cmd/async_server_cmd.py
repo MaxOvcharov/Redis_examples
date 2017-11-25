@@ -39,6 +39,7 @@ class RedisServerCommands:
         # await self.server_shutdown_cmd()
         await self.server_slaveof_cmd()
         await self.server_slowlog_get_cmd()
+        await self.server_slowlog_len_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -485,6 +486,19 @@ class RedisServerCommands:
             res1 = await conn.slowlog_get(length=2)
 
         frm = "SERVER_CMD - 'SLOWLOG_GET': LOGS - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def server_slowlog_len_cmd(self):
+        """
+        Returns length of Redis slow queries log.
+
+        :return: None
+        """
+
+        with await self.rd1 as conn:
+            res1 = await conn.slowlog_len()
+
+        frm = "SERVER_CMD - 'SLOWLOG_LEN': LOG_LEN - {0}\n"
         logger.debug(frm.format(res1))
 
 
