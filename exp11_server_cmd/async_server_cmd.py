@@ -36,6 +36,7 @@ class RedisServerCommands:
         await self.server_lastsave_cmd()
         await self.server_role_cmd()
         await self.server_save_cmd()
+        # await self.server_shutdown_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -421,6 +422,27 @@ class RedisServerCommands:
             res1 = await conn.save()
         frm = "SERVER_CMD - 'SAVE': RES - {0}\n"
         logger.debug(frm.format(res1))
+
+    async def server_shutdown_cmd(self):
+        """
+        It is possible to specify an optional modifier
+          to alter the behavior of the command. Specifically:
+          - SHUTDOWN SAVE will force a DB saving
+            operation even if no save points are configured.
+          - SHUTDOWN NOSAVE will prevent a DB saving operation
+            even if one or more save points are configured.
+            (You can think of this variant as an hypothetical
+            ABORT command that just stops the server).
+
+        :return: None
+        """
+
+        with await self.rd1 as conn:
+            res1 = await conn.shutdown(save='SHUTDOWN_SAVE')
+            res2 = await conn.shutdown(save='SHUTDOWN_NOSAVE')
+
+        frm = "SERVER_CMD - 'SHUTDOWN': RES_SAVE - {0}, RES_NOSAVE - {1}\n"
+        logger.debug(frm.format(res1, res2))
 
 
 def main():
