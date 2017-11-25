@@ -37,6 +37,7 @@ class RedisServerCommands:
         await self.server_role_cmd()
         await self.server_save_cmd()
         # await self.server_shutdown_cmd()
+        await self.server_slaveof_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -443,6 +444,26 @@ class RedisServerCommands:
 
         frm = "SERVER_CMD - 'SHUTDOWN': RES_SAVE - {0}, RES_NOSAVE - {1}\n"
         logger.debug(frm.format(res1, res2))
+
+    async def server_slaveof_cmd(self):
+        """
+        The SLAVEOF command can change the replication
+          settings of a slave on the fly. If a Redis
+          server is already acting as slave, the command
+          SLAVEOF NO ONE will turn off the replication,
+          turning the Redis server into a MASTER. In the
+          proper form SLAVEOF hostname port will make
+          the server a slave of another server listening
+          at the specified hostname and port.
+
+        :return: None
+        """
+
+        with await self.rd1 as conn:
+            res1 = await conn.slaveof(None)
+
+        frm = "SERVER_CMD - 'SLAVEOF': RES_SLAVEOF - {0}\n"
+        logger.debug(frm.format(res1))
 
 
 def main():
