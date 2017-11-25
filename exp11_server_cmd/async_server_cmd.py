@@ -40,6 +40,7 @@ class RedisServerCommands:
         await self.server_slaveof_cmd()
         await self.server_slowlog_get_cmd()
         await self.server_slowlog_len_cmd()
+        await self.server_slowlog_reset_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -500,6 +501,22 @@ class RedisServerCommands:
 
         frm = "SERVER_CMD - 'SLOWLOG_LEN': LOG_LEN - {0}\n"
         logger.debug(frm.format(res1))
+
+    async def server_slowlog_reset_cmd(self):
+        """
+        Resets Redis slow queries log.
+
+        :return: None
+        """
+
+        with await self.rd1 as conn:
+            len_before = await conn.slowlog_len()
+            res1 = await conn.slowlog_reset()
+            len_after = await conn.slowlog_len()
+
+        frm = "SERVER_CMD - 'SLOWLOG_RESET': LEN_BEFORE - {0}, " \
+              "RESET_RES - {1}, LEN_AFTER - {2}\n"
+        logger.debug(frm.format(len_before, res1, len_after))
 
 
 def main():
