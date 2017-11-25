@@ -42,6 +42,7 @@ class RedisServerCommands:
         await self.server_slowlog_len_cmd()
         await self.server_slowlog_reset_cmd()
         await self.server_sync_cmd()
+        await self.server_time_cmd()
 
     async def server_bgrewriteaof_cmd(self):
         """
@@ -529,6 +530,23 @@ class RedisServerCommands:
             res1 = await conn.sync()
 
         frm = "SERVER_CMD - 'SYNC': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def server_time_cmd(self):
+        """
+        The TIME command returns the current server
+          time as a two items lists: a Unix timestamp
+          and the amount of microseconds already elapsed
+          in the current second. Basically the interface
+          is very similar to the one of the gettimeofday
+          system call.
+
+        :return: None
+        """
+        with await self.rd1 as conn:
+            res1 = await conn.time()
+
+        frm = "SERVER_CMD - 'TIME': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
