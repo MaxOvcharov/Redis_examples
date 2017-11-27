@@ -18,7 +18,38 @@ class RedisClusterCommands:
         self.rd_conf = conf
 
     async def run_cluster_cmd(self):
-        pass
+        await self.cluster_cluster_add_slots_cmd()
+
+    async def cluster_cluster_add_slots_cmd(self):
+        """
+        This command is useful in order to modify a node's view
+          of the cluster configuration. Specifically it assigns a
+          set of hash slots to the node receiving the command.
+          If the command is successful, the node will map the
+          specified hash slots to itself, and will start
+          broadcasting the new configuration.
+          However note that:
+          - The command only works if all the specified slots are,
+            from the point of view of the node receiving the command,
+            currently not assigned. A node will refuse to take
+            ownership for slots that already belong to some other
+            node (including itself).
+          - The command fails if the same slot is specified
+            multiple times.
+          - As a side effect of the command execution, if a slot
+            among the ones specified as argument is set as importing,
+            this state gets cleared once the node assigns the
+            (previously unbound) slot to itself.
+
+        :return: None
+        """
+        try:
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_add_slots(*(1, 2, 3))
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER ADDSLOTS': RES - {0}\n"
+        logger.debug(frm.format(res1))
 
 
 def main():
