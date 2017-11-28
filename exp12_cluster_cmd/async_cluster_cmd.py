@@ -19,6 +19,7 @@ class RedisClusterCommands:
 
     async def run_cluster_cmd(self):
         await self.cluster_cluster_add_slots_cmd()
+        await self.cluster_cluster_count_failure_reports_cmd()
 
     async def cluster_cluster_add_slots_cmd(self):
         """
@@ -49,6 +50,25 @@ class RedisClusterCommands:
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER ADDSLOTS': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def cluster_cluster_count_failure_reports_cmd(self):
+        """
+        The command returns the number of failure reports for
+          the specified node. Failure reports are the way
+          Redis Cluster uses in order to promote a PFAIL state,
+          that means a node is not reachable, to a FAIL state,
+          that means that the majority of masters in the cluster
+          agreed within a window of time that the node is not reachable.
+
+        :return: None
+        """
+        try:
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_count_failure_reports(node_id=1)
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER_COUNT_FAILURE_REPORTS': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
