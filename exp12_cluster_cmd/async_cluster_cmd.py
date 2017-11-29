@@ -20,6 +20,7 @@ class RedisClusterCommands:
     async def run_cluster_cmd(self):
         await self.cluster_cluster_add_slots_cmd()
         await self.cluster_cluster_count_failure_reports_cmd()
+        await self.cluster_cluster_count_key_in_slots_cmd()
 
     async def cluster_cluster_add_slots_cmd(self):
         """
@@ -69,6 +70,23 @@ class RedisClusterCommands:
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_COUNT_FAILURE_REPORTS': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def cluster_cluster_count_key_in_slots_cmd(self):
+        """
+        Returns the number of keys in the specified Redis Cluster
+          hash slot. The command only queries the local data set,
+          so contacting a node that is not serving the specified
+          hash slot will always result in a count of zero being returned.
+
+        :return: None
+        """
+        try:
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_count_key_in_slots(1)
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER_COUNT_KEY_IN_SLOTS': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
