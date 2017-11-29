@@ -21,6 +21,7 @@ class RedisClusterCommands:
         await self.cluster_cluster_add_slots_cmd()
         await self.cluster_cluster_count_failure_reports_cmd()
         await self.cluster_cluster_count_key_in_slots_cmd()
+        await self.cluster_cluster_del_slots_cmd()
 
     async def cluster_cluster_add_slots_cmd(self):
         """
@@ -87,6 +88,24 @@ class RedisClusterCommands:
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_COUNT_KEY_IN_SLOTS': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def cluster_cluster_del_slots_cmd(self):
+        """
+        In Redis Cluster, each node keeps track of which
+          master is serving a particular hash slot.
+          The DELSLOTS command asks a particular Redis
+          Cluster node to forget which master is serving
+          the hash slots specified as arguments.
+
+        :return: None
+        """
+        try:
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_del_slots(1, 2)
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER_DEL_SLOTS': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
