@@ -22,6 +22,7 @@ class RedisClusterCommands:
         await self.cluster_cluster_count_failure_reports_cmd()
         await self.cluster_cluster_count_key_in_slots_cmd()
         await self.cluster_cluster_del_slots_cmd()
+        await self.cluster_cluster_forget_cmd()
 
     async def cluster_cluster_add_slots_cmd(self):
         """
@@ -106,6 +107,25 @@ class RedisClusterCommands:
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_DEL_SLOTS': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def cluster_cluster_forget_cmd(self):
+        """
+        The command is used in order to remove a node,
+          specified via its node ID, from the set of
+          known nodes of the Redis Cluster node receiving
+          the command. In other words the specified node
+          is removed from the nodes table of the node
+          receiving the command.
+
+        :return: None
+        """
+        try:
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_forget(1)
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER_FORGET': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
