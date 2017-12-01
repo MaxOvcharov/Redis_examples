@@ -23,6 +23,7 @@ class RedisClusterCommands:
         await self.cluster_cluster_count_key_in_slots_cmd()
         await self.cluster_cluster_del_slots_cmd()
         await self.cluster_cluster_forget_cmd()
+        await self.cluster_cluster_get_keys_in_slots_cmd()
 
     async def cluster_cluster_add_slots_cmd(self):
         """
@@ -126,6 +127,24 @@ class RedisClusterCommands:
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_FORGET': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def cluster_cluster_get_keys_in_slots_cmd(self):
+        """
+        The command returns an array of keys names stored
+          in the contacted node and hashing to the specified
+          hash slot. The maximum number of keys to return is
+          specified via the count argument, so that it is
+          possible for the user of this API to batch-processing keys.
+
+        :return: None
+        """
+        try:
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_get_keys_in_slots(7000, 3, encoding='utf-8')
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER_GET_KEYS_IN_SLOTS': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
