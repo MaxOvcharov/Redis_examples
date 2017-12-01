@@ -24,6 +24,7 @@ class RedisClusterCommands:
         await self.cluster_cluster_del_slots_cmd()
         await self.cluster_cluster_forget_cmd()
         await self.cluster_cluster_get_keys_in_slots_cmd()
+        await self.cluster_cluster_keyslot_cmd()
 
     async def cluster_cluster_add_slots_cmd(self):
         """
@@ -145,6 +146,35 @@ class RedisClusterCommands:
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_GET_KEYS_IN_SLOTS': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def cluster_cluster_keyslot_cmd(self):
+        """
+        Returns an integer identifying the hash slot
+          the specified key hashes to. This command
+          is mainly useful for debugging and testing,
+          since it exposes via an API the underlying
+          Redis implementation of the hashing algorithm.
+          Example use cases for this command:
+          - Client libraries may use Redis in order to
+            test their own hashing algorithm, generating
+            random keys and hashing them with both their
+            local implementation and using Redis CLUSTER
+            KEYSLOT command, then checking if the result
+            is the same.
+          - Humans may use this command in order to check
+            what is the hash slot, and then the associated
+            Redis Cluster node, responsible for a given key.
+
+        :return: None
+        """
+        try:
+            key = 'key1'
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_keyslot(key)
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER_KEYSLOT': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
