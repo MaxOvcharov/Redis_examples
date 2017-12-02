@@ -25,6 +25,7 @@ class RedisClusterCommands:
         await self.cluster_cluster_forget_cmd()
         await self.cluster_cluster_get_keys_in_slots_cmd()
         await self.cluster_cluster_keyslot_cmd()
+        await self.cluster_cluster_meet_cmd()
 
     async def cluster_cluster_add_slots_cmd(self):
         """
@@ -175,6 +176,29 @@ class RedisClusterCommands:
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_KEYSLOT': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def cluster_cluster_meet_cmd(self):
+        """
+        CLUSTER MEET is used in order to connect
+          different Redis nodes with cluster support
+          enabled, into a working cluster.
+          The basic idea is that nodes by default don't
+          trust each other, and are considered unknown,
+          so that it is unlikely that different cluster
+          nodes will mix into a single one because of
+          system administration errors or network
+          addresses modifications.
+
+        :return: None
+        """
+        ip, port = '127.0.0.2', 9002
+        try:
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_meet(ip, port)
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER_MEET': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
