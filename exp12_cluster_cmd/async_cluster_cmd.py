@@ -26,6 +26,7 @@ class RedisClusterCommands:
         await self.cluster_cluster_get_keys_in_slots_cmd()
         await self.cluster_cluster_keyslot_cmd()
         await self.cluster_cluster_meet_cmd()
+        await self.cluster_cluster_replicate_cmd()
 
     async def cluster_cluster_add_slots_cmd(self):
         """
@@ -50,9 +51,10 @@ class RedisClusterCommands:
 
         :return: None
         """
+        slots = (1, 2, 3)
         try:
             with await self.rd1 as conn:
-                res1 = await conn.cluster_add_slots(*(1, 2, 3))
+                res1 = await conn.cluster_add_slots(*slots)
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER ADDSLOTS': RES - {0}\n"
@@ -69,9 +71,10 @@ class RedisClusterCommands:
 
         :return: None
         """
+        node_id = 1
         try:
             with await self.rd1 as conn:
-                res1 = await conn.cluster_count_failure_reports(node_id=1)
+                res1 = await conn.cluster_count_failure_reports(node_id)
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_COUNT_FAILURE_REPORTS': RES - {0}\n"
@@ -86,9 +89,10 @@ class RedisClusterCommands:
 
         :return: None
         """
+        slot = 1
         try:
             with await self.rd1 as conn:
-                res1 = await conn.cluster_count_key_in_slots(1)
+                res1 = await conn.cluster_count_key_in_slots(slot)
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_COUNT_KEY_IN_SLOTS': RES - {0}\n"
@@ -104,9 +108,10 @@ class RedisClusterCommands:
 
         :return: None
         """
+        slots = (1, 3)
         try:
             with await self.rd1 as conn:
-                res1 = await conn.cluster_del_slots(1, 2)
+                res1 = await conn.cluster_del_slots(*slots)
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_DEL_SLOTS': RES - {0}\n"
@@ -123,9 +128,10 @@ class RedisClusterCommands:
 
         :return: None
         """
+        node_id = 1
         try:
             with await self.rd1 as conn:
-                res1 = await conn.cluster_forget(1)
+                res1 = await conn.cluster_forget(node_id)
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_FORGET': RES - {0}\n"
@@ -141,9 +147,10 @@ class RedisClusterCommands:
 
         :return: None
         """
+        slot, count = 7000, 3
         try:
             with await self.rd1 as conn:
-                res1 = await conn.cluster_get_keys_in_slots(7000, 3, encoding='utf-8')
+                res1 = await conn.cluster_get_keys_in_slots(slot, count, encoding='utf-8')
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_GET_KEYS_IN_SLOTS': RES - {0}\n"
@@ -199,6 +206,30 @@ class RedisClusterCommands:
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_MEET': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def cluster_cluster_replicate_cmd(self):
+        """
+        The command reconfigures a node as a slave of the
+          specified master. If the node receiving the
+          command is an empty master, as a side effect
+          of the command, the node role is changed
+          from master to slave.
+          Once a node is turned into the slave of another
+          master node, there is no need to inform the other
+          cluster nodes about the change: heartbeat packets
+          exchanged between nodes will propagate the new
+          configuration automatically.
+
+        :return: None
+        """
+        node_id = 1
+        try:
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_replicate(node_id)
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER_REPLICATE': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
