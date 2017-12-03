@@ -28,6 +28,7 @@ class RedisClusterCommands:
         await self.cluster_cluster_meet_cmd()
         await self.cluster_cluster_replicate_cmd()
         await self.cluster_cluster_reset_cmd()
+        await self.cluster_cluster_save_config_cmd()
 
     async def cluster_cluster_add_slots_cmd(self):
         """
@@ -264,6 +265,33 @@ class RedisClusterCommands:
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_RESET': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def cluster_cluster_save_config_cmd(self):
+        """
+        Forces a node to save the nodes.conf configuration on
+          disk. Before to return the command calls fsync(2)
+          in order to make sure the configuration is flushed
+          on the computer disk.
+          This command is mainly used in the event a nodes.conf
+          node state file gets lost / deleted for some reason,
+          and we want to generate it again from scratch. It can
+          also be useful in case of mundane alterations of a
+          node cluster configuration via the CLUSTER command in
+          order to ensure the new configuration is persisted on
+          disk, however all the commands should normally be able
+          to auto schedule to persist the configuration on disk
+          when it is important to do so for the correctness of
+          the system in the event of a restart.
+
+        :return: None
+        """
+        try:
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_save_config()
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER_SAVE_CONFIG': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
