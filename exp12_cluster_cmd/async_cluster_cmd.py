@@ -29,6 +29,7 @@ class RedisClusterCommands:
         await self.cluster_cluster_replicate_cmd()
         await self.cluster_cluster_reset_cmd()
         await self.cluster_cluster_save_config_cmd()
+        await self.cluster_cluster_set_config_epoch_cmd()
 
     async def cluster_cluster_add_slots_cmd(self):
         """
@@ -292,6 +293,29 @@ class RedisClusterCommands:
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_SAVE_CONFIG': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def cluster_cluster_set_config_epoch_cmd(self):
+        """
+        This command sets a specific config epoch in a fresh
+          node. It only works when:
+          - The nodes table of the node is empty.
+          - The node current config epoch is zero.
+
+        So, using CONFIG SET-CONFIG-EPOCH, when a new cluster
+          is created, we can assign a different progressive
+          configuration epoch to each node before joining the
+          cluster together.
+
+        :return: None
+        """
+        config_epoch = 1
+        try:
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_set_config_epoch(config_epoch)
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER_SET_CONFIG_EPOCH': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
