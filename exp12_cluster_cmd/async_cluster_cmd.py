@@ -27,6 +27,7 @@ class RedisClusterCommands:
         await self.cluster_cluster_keyslot_cmd()
         await self.cluster_cluster_meet_cmd()
         await self.cluster_cluster_replicate_cmd()
+        await self.cluster_cluster_reset_cmd()
 
     async def cluster_cluster_add_slots_cmd(self):
         """
@@ -230,6 +231,39 @@ class RedisClusterCommands:
         except Exception as e:
             res1 = 'HANDLE ERROR: %s' % e
         frm = "CLUSTER_CMD - 'CLUSTER_REPLICATE': RES - {0}\n"
+        logger.debug(frm.format(res1))
+
+    async def cluster_cluster_reset_cmd(self):
+        """
+        Reset a Redis Cluster node, in a more or less
+          drastic way depending on the reset type, that
+          can be hard or soft. Note that this command
+          does not work for masters if they hold one or
+          more keys, in that case to completely reset a
+          master node keys must be removed first, e.g.
+          by using FLUSHALL first, and then CLUSTER RESET.
+          Effects on the node:
+
+          - All the other nodes in the cluster are forgotten.
+          - All the assigned / open slots are reset, so the
+            slots-to-nodes mapping is totally cleared.
+          - If the node is a slave it is turned into an
+            (empty) master. Its dataset is flushed, so at
+            the end the node will be an empty master.
+          - Hard reset only: a new Node ID is generated.
+          - Hard reset only: currentEpoch and configEpoch
+            vars are set to 0.
+          - The new configuration is persisted on disk in
+            the node cluster configuration file.
+
+        :return: None
+        """
+        try:
+            with await self.rd1 as conn:
+                res1 = await conn.cluster_reset(hard=False)  # soft reset
+        except Exception as e:
+            res1 = 'HANDLE ERROR: %s' % e
+        frm = "CLUSTER_CMD - 'CLUSTER_RESET': RES - {0}\n"
         logger.debug(frm.format(res1))
 
 
