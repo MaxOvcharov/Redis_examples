@@ -18,7 +18,28 @@ class RedisGeoCommands:
         self.rd_conf = conf
 
     async def run_geo_cmd(self):
-        pass
+        await self.rd_geoadd_cmd()
+
+    async def rd_geoadd_cmd(self):
+        """
+        Adds the specified geospatial items
+          (latitude, longitude, name) to the specified key.
+          Data is stored into the key as a sorted set, in
+          a way that makes it possible to later retrieve
+          items using a query by radius with the
+          GEORADIUS or GEORADIUSBYMEMBER commands.
+
+        :return: None
+        """
+        key1 = 'Sicily'
+        long1, lat1, member1 = 13.361389, 38.115556, "Palermo"
+        long2, lat2, member2 = 15.087269, 37.502669, "Catania"
+        with await self.rd1 as conn:
+            res1 = await conn.geoadd(key1, long1, lat1, member1)
+            res2 = await conn.geoadd(key1, long2, lat2, member2)
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'GEOADD': KEY- {0}, GEO_RES({1})- {2}, GEO_RES({3}) - {4}\n"
+        logger.debug(frm.format(key1, member1, res1, member2, res2))
 
 
 def main():
