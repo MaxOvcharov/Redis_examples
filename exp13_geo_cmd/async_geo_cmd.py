@@ -19,6 +19,7 @@ class RedisGeoCommands:
 
     async def run_geo_cmd(self):
         await self.rd_geoadd_cmd()
+        await self.rd_geodist_cmd()
 
     async def rd_geoadd_cmd(self):
         """
@@ -38,8 +39,36 @@ class RedisGeoCommands:
             res1 = await conn.geoadd(key1, long1, lat1, member1)
             res2 = await conn.geoadd(key1, long2, lat2, member2)
             await conn.delete(key1)
-        frm = "LIST_CMD - 'GEOADD': KEY- {0}, GEO_RES({1})- {2}, GEO_RES({3}) - {4}\n"
+        frm = "LIST_CMD - 'GEOADD': KEY- {0}, GEO_RES({1})- {2}, GEO_RES({3})- {4}\n"
         logger.debug(frm.format(key1, member1, res1, member2, res2))
+
+    async def rd_geodist_cmd(self):
+        """
+        Return the distance between two members in the
+          geospatial index represented by the sorted set.
+          The unit must be one of the following,
+          and defaults to meters:
+          - m for meters.
+          - km for kilometers.
+          - mi for miles.
+          - ft for feet.
+          The distance is computed assuming that the Earth
+          is a perfect sphere, so errors up to 0.5% are
+          possible in edge cases.
+
+        :return: None
+        """
+        key1 = 'Sicily'
+        long1, lat1, member1 = 13.361389, 38.115556, "Palermo"
+        long2, lat2, member2 = 15.087269, 37.502669, "Catania"
+        unit = 'km'
+        with await self.rd1 as conn:
+            await conn.geoadd(key1, long1, lat1, member1)
+            await conn.geoadd(key1, long2, lat2, member2)
+            res1 = await conn.geodist(key1, member1, member2, unit=unit)
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'GEOADD': KEY- {0}, GEO_DIST({1} <-> {2})- {3} {4}\n"
+        logger.debug(frm.format(key1, member1, member2, res1, unit))
 
 
 def main():
