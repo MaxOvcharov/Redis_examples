@@ -20,6 +20,7 @@ class RedisGeoCommands:
     async def run_geo_cmd(self):
         await self.rd_geoadd_cmd()
         await self.rd_geodist_cmd()
+        await self.rd_geohash_cmd()
 
     async def rd_geoadd_cmd(self):
         """
@@ -67,8 +68,27 @@ class RedisGeoCommands:
             await conn.geoadd(key1, long2, lat2, member2)
             res1 = await conn.geodist(key1, member1, member2, unit=unit)
             await conn.delete(key1)
-        frm = "LIST_CMD - 'GEOADD': KEY- {0}, GEO_DIST({1} <-> {2})- {3} {4}\n"
+        frm = "LIST_CMD - 'GEODIST': KEY- {0}, GEO_DIST({1} <-> {2})- {3} {4}\n"
         logger.debug(frm.format(key1, member1, member2, res1, unit))
+
+    async def rd_geohash_cmd(self):
+        """
+        The command returns an array where each element is
+          the Geohash corresponding to each member name
+          passed as argument to the command.
+
+        :return: None
+        """
+        key1 = 'Sicily'
+        long1, lat1, member1 = 13.361389, 38.115556, "Palermo"
+        long2, lat2, member2 = 15.087269, 37.502669, "Catania"
+        with await self.rd1 as conn:
+            await conn.geoadd(key1, long1, lat1, member1)
+            await conn.geoadd(key1, long2, lat2, member2)
+            res1 = await conn.geohash(key1, member1, member2)
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'GEOHASh': KEY- {0}, GEO_HASH({1}) - {2}\n"
+        logger.debug(frm.format(key1, (member1, member2), res1))
 
 
 def main():
