@@ -21,6 +21,7 @@ class RedisGeoCommands:
         await self.rd_geoadd_cmd()
         await self.rd_geodist_cmd()
         await self.rd_geohash_cmd()
+        await self.rd_geopos_cmd()
 
     async def rd_geoadd_cmd(self):
         """
@@ -87,8 +88,29 @@ class RedisGeoCommands:
             await conn.geoadd(key1, long2, lat2, member2)
             res1 = await conn.geohash(key1, member1, member2)
             await conn.delete(key1)
-        frm = "LIST_CMD - 'GEOHASh': KEY- {0}, GEO_HASH({1}) - {2}\n"
+        frm = "LIST_CMD - 'GEOHASH': KEY- {0}, GEO_HASH({1}) - {2}\n"
         logger.debug(frm.format(key1, (member1, member2), res1))
+
+    async def rd_geopos_cmd(self):
+        """
+        The command returns an array where each element is a
+          two elements array representing longitude and
+          latitude (x,y) of each member name passed as argument to the command.
+          Non existing elements are reported as NULL elements
+          of the array.
+
+        :return: None
+        """
+        key1 = 'Sicily'
+        long1, lat1, member1 = 13.361389, 38.115556, "Palermo"
+        long2, lat2, member2 = 15.087269, 37.502669, "Catania"
+        with await self.rd1 as conn:
+            await conn.geoadd(key1, long1, lat1, member1)
+            await conn.geoadd(key1, long2, lat2, member2)
+            res1 = await conn.geopos(key1, member1, member2)
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'GEOPOS': KEY- {0}, GEO_POS1({1}) - {2}, GEO_POS2({3}) - {4}\n"
+        logger.debug(frm.format(key1, member1, res1[0], member2, res1[0]))
 
 
 def main():
