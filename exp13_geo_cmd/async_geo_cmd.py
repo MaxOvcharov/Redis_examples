@@ -23,6 +23,7 @@ class RedisGeoCommands:
         await self.rd_geohash_cmd()
         await self.rd_geopos_cmd()
         await self.rd_georadius_cmd()
+        await self.rd_georadiusbymember_cmd()
 
     async def rd_geoadd_cmd(self):
         """
@@ -150,6 +151,31 @@ class RedisGeoCommands:
             await conn.delete(key1)
         frm = "LIST_CMD - 'GEORADIUS': KEY- {0}, GEO_RADIUS - {1}\n"
         logger.debug(frm.format(key1, res1))
+
+    async def rd_georadiusbymember_cmd(self):
+        """
+        This command is exactly like GEORADIUS with the
+          sole difference that instead of taking, as the
+          center of the area to query, a longitude and
+          latitude value, it takes the name of a member
+          already existing inside the geospatial index
+          represented by the sorted set.
+
+        :return: None
+        """
+        key1 = 'Sicily'
+        long1, lat1, member1 = 13.361389, 38.115556, "Palermo"
+        long2, lat2, member2 = 15.087269, 37.502669, "Catania"
+        radius, unit = 200, 'km'
+        with await self.rd1 as conn:
+            await conn.geoadd(key1, long1, lat1, member1)
+            await conn.geoadd(key1, long2, lat2, member2)
+            res1 = await conn.georadiusbymember(key1, member1, radius, unit,
+                                                with_dist=True, with_hash=True,
+                                                with_coord=True, sort='ASC')
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'GEORADIUSBYMEMBER': KEY- {0}, GEO_RADIUS({1}) - {2}\n"
+        logger.debug(frm.format(key1, member1, res1))
 
 
 def main():
