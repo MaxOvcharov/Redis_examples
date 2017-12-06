@@ -22,6 +22,7 @@ class RedisGeoCommands:
         await self.rd_geodist_cmd()
         await self.rd_geohash_cmd()
         await self.rd_geopos_cmd()
+        await self.rd_georadius_cmd()
 
     async def rd_geoadd_cmd(self):
         """
@@ -111,6 +112,44 @@ class RedisGeoCommands:
             await conn.delete(key1)
         frm = "LIST_CMD - 'GEOPOS': KEY- {0}, GEO_POS1({1}) - {2}, GEO_POS2({3}) - {4}\n"
         logger.debug(frm.format(key1, member1, res1[0], member2, res1[0]))
+
+    async def rd_georadius_cmd(self):
+        """
+        Return the members of a sorted set populated
+          with geospatial information using GEOADD,
+          which are within the borders of the area
+          specified with the center location and the
+          maximum distance from the center (the radius).
+          The command optionally returns additional
+          information using the following options:
+          - WITHDIST: Also return the distance of the
+            returned items from the specified center.
+            The distance is returned in the same unit as
+            the unit specified as the radius argument
+            of the command.
+          - WITHCOORD: Also return the longitude,latitude
+            coordinates of the matching items.
+          - WITHHASH: Also return the raw geohash-encoded
+            sorted set score of the item, in the form of a
+            52 bit unsigned integer. This is only useful for
+            low level hacks or debugging and is otherwise of
+            little interest for the general user.
+
+        :return: None
+        """
+        key1 = 'Sicily'
+        long1, lat1, member1 = 13.361389, 38.115556, "Palermo"
+        long2, lat2, member2 = 15.087269, 37.502669, "Catania"
+        longitude, latitude, radius, unit = 15, 37, 200, 'km'
+        with await self.rd1 as conn:
+            await conn.geoadd(key1, long1, lat1, member1)
+            await conn.geoadd(key1, long2, lat2, member2)
+            res1 = await conn.georadius(key1, longitude, latitude, radius, unit,
+                                        with_dist=True, with_hash=True,
+                                        with_coord=True, sort='ASC')
+            await conn.delete(key1)
+        frm = "LIST_CMD - 'GEORADIUS': KEY- {0}, GEO_RADIUS - {1}\n"
+        logger.debug(frm.format(key1, res1))
 
 
 def main():
