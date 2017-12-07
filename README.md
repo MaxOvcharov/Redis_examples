@@ -1,4 +1,4 @@
-# Redis_examples using [aioredis](http://aioredis.readthedocs.io/) lib
+# Redis examples using [aioredis](http://aioredis.readthedocs.io/) lib
 
 #### This repo include examples for all Redis data types [Redis Data types]( https://redis.io/topics/data-types):
 
