@@ -14,4 +14,4 @@
 10. Redis [PubSub commands](http://redis.io/commands/#pubsub) - exp10_pubsub_cmd
 11. Redis [Server commands](http://redis.io/commands/#server) - exp11_server_cmd
 12. Redis [Cluster commands](http://redis.io/commands#cluster) - exp12_cluster_cmd
-13 Redis [Geo commands](http://redis.io/commands#geo) - exp13_geo_cmd
+13. Redis [Geo commands](http://redis.io/commands#geo) - exp13_geo_cmd
